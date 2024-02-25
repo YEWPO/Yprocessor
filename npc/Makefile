@@ -1,37 +1,27 @@
-BUILD_DIR = ./build
+WORK_DIR = $(abspath .)
 
-export PATH := $(PATH):$(abspath ./utils)
+BUILD_DIR = $(WORK_DIR)/build
+
+sting_in_red = "\033[31;1m"$(1)"\033[0m"
+
+build:
+	$(call git_commit, "generate verilog")
+	@echo $(call sting_in_red, "=> Build Project")
+	@mill -i __.runMain Elaborate --target-dir $(BUILD_DIR)
 
 test:
-	mill -i __.test
-
-verilog:
-	$(call git_commit, "generate verilog")
-	mkdir -p $(BUILD_DIR)
-	mill -i __.test.runMain Elaborate -td $(BUILD_DIR)
-
-help:
-	mill -i __.test.runMain Elaborate --help
-
-compile:
-	mill -i __.compile
-
-bsp:
-	mill -i mill.bsp.BSP/install
-
-reformat:
-	mill -i __.reformat
-
-checkformat:
-	mill -i __.checkFormat
+	@echo $(call sting_in_red, "=> Test Project")
+	@mill -i __.test
 
 clean:
-	-rm -rf $(BUILD_DIR)
+	@echo $(call sting_in_red, "=> Clean Project")
+	@mill -i clean
+	@rm -rf $(BUILD_DIR)
 
-.PHONY: test verilog help compile bsp reformat checkformat clean
+reformat:
+	@echo $(call sting_in_red, "=> Reformat Project")
+	@mill -i __.reformat
 
-sim:
-	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@echo "Write this Makefile by yourself."
+.PHONY: build clean reformat
 
--include ../Makefile
+include ../Makefile
