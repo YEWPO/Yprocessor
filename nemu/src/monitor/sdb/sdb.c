@@ -148,6 +148,27 @@ static int cmd_x(char *args) {
   return 0;
 }
 
+static int cmd_p(char *args) {
+  if (args == NULL) {
+    /* not provide EXPR */
+    printf("no expression\n");
+  } else {
+    /* provide EXPR */
+
+    /* parse EXPR */
+    bool flag;
+    word_t val = expr(args, &flag);
+
+    if (flag == false) {
+      printf("invalid expression\n");
+    } else {
+      printf("HEX: " FMT_WORD "\tDEC: " "%" PRIu64 "\n",val, val);
+    }
+  }
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -161,6 +182,7 @@ static struct {
   {"si", "Step one or [N] instruction exactly.", cmd_si},
   {"info", "Generic command for showing things about the program being debugged." , cmd_info},
   {"x", "Examine memory: x/FMT ADDRESS.", cmd_x},
+  {"p", "Print value of expression EXP.", cmd_p},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
