@@ -1,0 +1,11 @@
+uint64_t mulh(uint64_t a, uint64_t b);
+uint64_t mulhsu(uint64_t a, uint64_t b);
+uint64_t mulhu(uint64_t a, uint64_t b);
+uint64_t divv(uint64_t a, uint64_t b);
+uint64_t divu(uint64_t a, uint64_t b);
+uint64_t rem(uint64_t a, uint64_t b);
+uint64_t remu(uint64_t a, uint64_t b);
+uint64_t divw(uint64_t a, uint64_t b);
+uint64_t divuw(uint64_t a, uint64_t b);
+uint64_t remw(uint64_t a, uint64_t b);
+uint64_t remuw(uint64_t a, uint64_t b);

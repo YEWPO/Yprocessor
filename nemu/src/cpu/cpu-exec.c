@@ -33,6 +33,15 @@ static bool g_print_step = false;
 void device_update();
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
+#ifdef CONFIG_ITRACE
+  void add2iring(Decode *_this);
+  add2iring(_this);
+#endif
+#ifdef CONFIG_FTRACE
+  void ftrace_inst(Decode *_this);
+  ftrace_inst(_this);
+#endif
+
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
@@ -133,5 +142,16 @@ void cpu_exec(uint64_t n) {
           nemu_state.halt_pc);
       // fall through
     case NEMU_QUIT: statistic();
+  }
+
+  if (nemu_state.state == NEMU_ABORT || nemu_state.halt_ret != 0) {
+#ifdef CONFIG_ITRACE
+    void iring_print();
+    iring_print();
+#endif
+#ifdef CONFIG_FTRACE
+    void ftrace_print();
+    ftrace_print();
+#endif
   }
 }
