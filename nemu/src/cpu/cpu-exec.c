@@ -37,6 +37,10 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   void add2iring(Decode *_this);
   add2iring(_this);
 #endif
+#ifdef CONFIG_FTRACE
+  void ftrace_inst(Decode *_this);
+  ftrace_inst(_this);
+#endif
 
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
@@ -144,6 +148,10 @@ void cpu_exec(uint64_t n) {
 #ifdef CONFIG_ITRACE
     void iring_print();
     iring_print();
+#endif
+#ifdef CONFIG_FTRACE
+    void ftrace_print();
+    ftrace_print();
 #endif
   }
 }
