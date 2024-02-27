@@ -48,7 +48,7 @@ uint64_t divw(uint64_t a, uint64_t b) {
     return 0xffffffffffffffff;
   }
 
-  uint64_t val = (int32_t)a / (int32_t)b;
+  int32_t val = (int32_t)a / (int32_t)b;
 
   return val;
 }
@@ -58,7 +58,7 @@ uint64_t divuw(uint64_t a, uint64_t b) {
     return 0xffffffffffffffff;
   }
 
-  uint64_t val = (uint32_t)a / (uint32_t)b;
+  int32_t val = (uint32_t)a / (uint32_t)b;
 
   return val;
 }
@@ -96,7 +96,7 @@ uint64_t remw(uint64_t a, uint64_t b) {
     return a;
   }
 
-  uint64_t val = (int32_t)a % (int32_t)b;
+  int32_t val = (int32_t)a % (int32_t)b;
 
   return val;
 }
@@ -106,7 +106,7 @@ uint64_t remuw(uint64_t a, uint64_t b) {
     return a;
   }
 
-  uint64_t val = (uint32_t)a % (uint32_t)b;
+  int32_t val = (uint32_t)a % (uint32_t)b;
 
   return val;
 }
