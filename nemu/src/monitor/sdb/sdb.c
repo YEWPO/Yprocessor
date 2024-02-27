@@ -95,6 +95,7 @@ static int cmd_info(char *args) {
      */
 
     printf("r - List of integer registers and their contents, for selected stack frame.\n");
+    printf("w - Status of specified watchpoints (all watchpoints if no argument).\n");
   } else {
     /*
      * check arg
@@ -102,6 +103,10 @@ static int cmd_info(char *args) {
      */
     if (strcmp("r", arg) == 0) {
       isa_reg_display();
+      return 0;
+    }
+    if (strcmp("w", arg) == 0) {
+      print_watchpoints();
       return 0;
     }
 
@@ -169,6 +174,40 @@ static int cmd_p(char *args) {
   return 0;
 }
 
+static int cmd_w(char *args) {
+  if (args == NULL) {
+    /* not provide EXPR */
+    printf("no expression\n");
+  } else {
+    /* provide EXPR */
+    new_wp(args);
+  }
+
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  /* extract first argument */
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    printf("Lack of argument.\n");
+  } else {
+    uint32_t no;
+    char *endptr;
+    no = strtoul(arg, &endptr, 10);
+
+    if (*endptr == '\0') {
+      /* valid value */
+      free_wp(no);
+    } else {
+      printf("invalid argument.\n");
+    }
+  }
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -183,6 +222,8 @@ static struct {
   {"info", "Generic command for showing things about the program being debugged." , cmd_info},
   {"x", "Examine memory: x/FMT ADDRESS.", cmd_x},
   {"p", "Print value of expression EXP.", cmd_p},
+  {"w", "Set a watchpoint for EXPRESSION.", cmd_w},
+  {"d", "Delete a watchpoint.", cmd_d},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
