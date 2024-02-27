@@ -15,6 +15,7 @@
 
 #include <isa.h>
 #include <cpu/cpu.h>
+#include <memory/paddr.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
@@ -49,7 +50,162 @@ static int cmd_c(char *args) {
 
 
 static int cmd_q(char *args) {
+  nemu_state.state = NEMU_QUIT;
   return -1;
+}
+
+static int cmd_si(char *args) {
+  /* extract the first argument */
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    /*
+     * no argument given
+     * default step one instruction exactly
+     */
+    cpu_exec(1);
+  } else {
+    uint64_t step_time;
+    char *endptr;
+    step_time = strtoull(arg, &endptr, 10);
+
+    if (*endptr == '\0') {
+      /*
+       * got a valid value
+       * execute step_time times
+       */
+      cpu_exec(step_time);
+    } else {
+      /* got a invalid value */
+      printf("invalid value %s\n", arg);
+    }
+  }
+
+  return 0;
+}
+
+static int cmd_info(char *args) {
+  /* extract the first argument */
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    /*
+     * no argument given
+     * output help
+     */
+
+    printf("r - List of integer registers and their contents, for selected stack frame.\n");
+    printf("w - Status of specified watchpoints (all watchpoints if no argument).\n");
+  } else {
+    /*
+     * check arg
+     * and execute
+     */
+    if (strcmp("r", arg) == 0) {
+      isa_reg_display();
+      return 0;
+    }
+    if (strcmp("w", arg) == 0) {
+      print_watchpoints();
+      return 0;
+    }
+
+    printf("Unknown option '%s'\n", arg);
+  }
+
+  return 0;
+}
+
+static int cmd_x(char *args) {
+  /* extract tow arguments */
+  char *arg1 = strtok(NULL, " ");
+  char *arg2 = strtok(NULL, " ");
+
+  if (arg1 == NULL || arg2 == NULL) {
+    /* lack of argument */
+    printf("Lack of arguments\n");
+  } else {
+    /* get step time value */
+    uint64_t xsize;
+    char *endptr;
+    xsize = strtoull(arg1, &endptr, 10);
+
+    if (*endptr == '\0') {
+      /* valid value of N*/
+      word_t paddr = strtoull(arg2, &endptr, 16);
+
+      if (*endptr == '\0') {
+        /* valid value of EXPR */
+        int i;
+
+        for (i = 0; i < xsize; i++) {
+          word_t xaddr = paddr + i * 4;
+          printf(ANSI_FMT(FMT_WORD, ANSI_FG_BLUE) ": 0x%08lx\n", xaddr, paddr_read(xaddr, 4));
+        }
+      } else {
+        printf("invalid address: %s\n", arg2);
+      }
+    } else {
+      printf("invalid value of N: %s\n", arg1);
+    }
+  }
+
+  return 0;
+}
+
+static int cmd_p(char *args) {
+  if (args == NULL) {
+    /* not provide EXPR */
+    printf("no expression\n");
+  } else {
+    /* provide EXPR */
+
+    /* parse EXPR */
+    bool flag;
+    word_t val = expr(args, &flag);
+
+    if (flag == false) {
+      printf("invalid expression\n");
+    } else {
+      printf("HEX: " FMT_WORD "\tDEC: " "%" PRIu64 "\n",val, val);
+    }
+  }
+
+  return 0;
+}
+
+static int cmd_w(char *args) {
+  if (args == NULL) {
+    /* not provide EXPR */
+    printf("no expression\n");
+  } else {
+    /* provide EXPR */
+    new_wp(args);
+  }
+
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  /* extract first argument */
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    printf("Lack of argument.\n");
+  } else {
+    uint32_t no;
+    char *endptr;
+    no = strtoul(arg, &endptr, 10);
+
+    if (*endptr == '\0') {
+      /* valid value */
+      free_wp(no);
+    } else {
+      printf("invalid argument.\n");
+    }
+  }
+
+  return 0;
 }
 
 static int cmd_help(char *args);
@@ -62,9 +218,12 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
-  /* TODO: Add more commands */
-
+  {"si", "Step one or [N] instruction exactly.", cmd_si},
+  {"info", "Generic command for showing things about the program being debugged." , cmd_info},
+  {"x", "Examine memory: x/FMT ADDRESS.", cmd_x},
+  {"p", "Print value of expression EXP.", cmd_p},
+  {"w", "Set a watchpoint for EXPRESSION.", cmd_w},
+  {"d", "Delete a watchpoint.", cmd_d},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
