@@ -39,6 +39,11 @@ size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 
 #define NR_FILE (sizeof(file_table) / sizeof(file_table[0]))
 
+const char *fd2filename(int fd) {
+  assert(fd >= 0 && fd < NR_FILE);
+  return file_table[fd].name;
+}
+
 int fs_open(const char *pathname, int flags, int mode) {
   for (int i = 0; i < NR_FILE; ++i) {
     if (strcmp(pathname, file_table[i].name) == 0) {

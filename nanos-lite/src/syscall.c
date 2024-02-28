@@ -73,6 +73,16 @@ void do_syscall(Context *c) {
   }
 
 #ifdef STRACE
-  printf("%s (%ld, %ld, %ld) = %ld\n", syscall_name[a[0]], a[1], a[2], a[3], c->GPRx);
+  const char *fd2filename(int fd);
+  if (
+      strcmp(syscall_name[a[0]], "open") == 0
+      || strcmp(syscall_name[a[0]], "read") == 0
+      || strcmp(syscall_name[a[0]], "write") == 0
+      || strcmp(syscall_name[a[0]], "close") == 0
+      || strcmp(syscall_name[a[0]], "lseek") == 0
+      )
+    printf("%s (%s, %ld, %ld) = %ld\n", syscall_name[a[0]], fd2filename(a[1]), a[2], a[3], c->GPRx);
+  else
+    printf("%s (%ld, %ld, %ld) = %ld\n", syscall_name[a[0]], a[1], a[2], a[3], c->GPRx);
 #endif
 }
