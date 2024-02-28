@@ -19,6 +19,12 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
   cpu.csr[MCAUSE] = NO;
   cpu.csr[MEPC] = epc;
 
+#ifdef CONFIG_ETRACE
+  log_write("Exception: \n"
+      "mcause: " FMT_WORD "\n"
+      "mepc: " FMT_WORD "\n", cpu.csr[MCAUSE], cpu.csr[MEPC]);
+#endif
+
   return cpu.csr[MTVEC];
 }
 
