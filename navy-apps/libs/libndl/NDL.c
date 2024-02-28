@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <fcntl.h>
 
 static int evtdev = -1;
 static int fbdev = -1;
@@ -20,7 +21,8 @@ uint32_t NDL_GetTicks() {
 }
 
 int NDL_PollEvent(char *buf, int len) {
-  return 0;
+  size_t n = read(evtdev, buf, len);
+  return !!n;
 }
 
 void NDL_OpenCanvas(int *w, int *h) {
@@ -63,6 +65,8 @@ int NDL_QueryAudio() {
 int NDL_Init(uint32_t flags) {
   if (getenv("NWM_APP")) {
     evtdev = 3;
+  } else {
+    evtdev = open("/dev/events", 0, 0);
   }
 
   struct timeval tv;
@@ -73,4 +77,5 @@ int NDL_Init(uint32_t flags) {
 }
 
 void NDL_Quit() {
+  close(evtdev);
 }
