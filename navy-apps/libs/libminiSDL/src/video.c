@@ -7,12 +7,158 @@
 void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
+
+  if (dst->format->BitsPerPixel == 8) {
+    uint8_t *src_pixels;
+    uint8_t *dst_pixels;
+
+    if (srcrect == NULL) {
+      src_pixels = (uint8_t *)src->pixels;
+    } else {
+      src_pixels = (uint8_t *)src->pixels + srcrect->y * src->w + srcrect->x;
+    }
+
+    if (dstrect == NULL) {
+      dst_pixels = (uint8_t *)dst->pixels;
+    } else {
+      dst_pixels = (uint8_t *)dst->pixels + dstrect->y * dst->w + dstrect->x;
+    }
+
+    if (srcrect == NULL) {
+      for (int i = 0; i < src->h; ++i) {
+        for (int j = 0; j < src->w; ++j) {
+          dst_pixels[j] = src_pixels[j];
+        }
+        src_pixels += src->w;
+        dst_pixels += dst->w;
+      }
+      return;
+    }
+
+    for (int i = 0; i < srcrect->h; ++i) {
+      for (int j = 0; j < srcrect->w; ++j) {
+        dst_pixels[j] = src_pixels[j];
+      }
+      src_pixels += src->w;
+      dst_pixels += dst->w;
+    }
+  } else {
+    uint32_t *src_pixels;
+    uint32_t *dst_pixels;
+
+    if (srcrect == NULL) {
+      src_pixels = (uint32_t *)src->pixels;
+    } else {
+      src_pixels = (uint32_t *)src->pixels + srcrect->y * src->w + srcrect->x;
+    }
+
+    if (dstrect == NULL) {
+      dst_pixels = (uint32_t *)dst->pixels;
+    } else {
+      dst_pixels = (uint32_t *)dst->pixels + dstrect->y * dst->w + dstrect->x;
+    }
+
+    if (srcrect == NULL) {
+      for (int i = 0; i < src->h; ++i) {
+        for (int j = 0; j < src->w; ++j) {
+          dst_pixels[j] = src_pixels[j];
+        }
+        src_pixels += src->w;
+        dst_pixels += dst->w;
+      }
+      return;
+    }
+
+    for (int i = 0; i < srcrect->h; ++i) {
+      for (int j = 0; j < srcrect->w; ++j) {
+        dst_pixels[j] = src_pixels[j];
+      }
+      src_pixels += src->w;
+      dst_pixels += dst->w;
+    }
+  }
 }
 
 void SDL_FillRect(SDL_Surface *dst, SDL_Rect *dstrect, uint32_t color) {
+  if (dst->format->BitsPerPixel == 8) {
+    if (dstrect == NULL) {
+      int screen_size = dst->w * dst->h;
+      uint8_t *pixels_data = (uint8_t *)dst->pixels;
+      for (int i = 0; i < screen_size; ++i) {
+        pixels_data[i] = (uint8_t)color;
+      }
+      return;
+    }
+
+    uint8_t *pixels_data = (uint8_t *)dst->pixels + dstrect->y * dst->w + dstrect->x;
+    for (int i = 0; i < dstrect->h; ++i) {
+      for (int j = 0; j < dstrect->w; ++j) {
+        pixels_data[j] = (uint8_t)color;
+      }
+      pixels_data += dst->w;
+    }
+  } else {
+    if (dstrect == NULL) {
+      int screen_size = dst->w * dst->h;
+      uint32_t *pixels_data = (uint32_t *)dst->pixels;
+      for (int i = 0; i < screen_size; ++i) {
+        pixels_data[i] = color;
+      }
+      return;
+    }
+
+    uint32_t *pixels_data = (uint32_t *)dst->pixels + dstrect->y * dst->w + dstrect->x;
+    for (int i = 0; i < dstrect->h; ++i) {
+      for (int j = 0; j < dstrect->w; ++j) {
+        pixels_data[j] = color;
+      }
+      pixels_data += dst->w;
+    }
+  }
 }
 
 void SDL_UpdateRect(SDL_Surface *s, int x, int y, int w, int h) {
+  int out_w = w, out_h = h;
+  if (!x && !y && !w && !h) {
+    out_w = s->w;
+    out_h = s->h;
+  }
+
+  if (x + out_w > s->w) out_w = s->w - x;
+  if (y + out_h > s->h) out_h = s->h - y;
+
+  uint32_t *out_pixels = malloc(out_w * out_h * 4);
+
+  if (s->format->BitsPerPixel == 8) {
+    uint32_t *out_colors = (uint32_t *)s->format->palette->colors;
+
+    uint8_t *in_data = (uint8_t *)s->pixels + y * s->w + x;
+    uint32_t *out_data = out_pixels;
+
+    for (int i = 0; i < out_h; ++i) {
+      for (int j = 0; j < out_w; ++j) {
+        SDL_Color color = (SDL_Color)out_colors[in_data[j]];
+        *out_data = ((uint32_t)color.r << 16) | ((uint32_t)color.g << 8) | (uint32_t)color.b;
+        out_data++;
+      }
+      in_data += s->w;
+    }
+  } else {
+    uint32_t *in_data = (uint32_t *)s->pixels + y * s->w + x;
+    uint32_t *out_data = out_pixels;
+
+    for (int i = 0; i < out_h; ++i) {
+      for (int j = 0; j < out_w; ++j) {
+        *out_data = in_data[j];
+        out_data++;
+      }
+      in_data += s->w;
+    }
+  }
+
+  NDL_DrawRect(out_pixels, x, y, out_w, out_h);
+
+  free(out_pixels);
 }
 
 // APIs below are already implemented.
