@@ -48,11 +48,29 @@ size_t events_read(void *buf, size_t offset, size_t len) {
 }
 
 size_t dispinfo_read(void *buf, size_t offset, size_t len) {
-  return 0;
+  AM_GPU_CONFIG_T cfg;
+  ioe_read(AM_GPU_CONFIG, &cfg);
+
+  size_t nread;
+  nread = snprintf(buf, len, "WIDTH:%d\nHEIGHT:%d\n", cfg.width, cfg.height);
+
+  return nread;
 }
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
-  return 0;
+  AM_GPU_CONFIG_T cfg;
+  ioe_read(AM_GPU_CONFIG, &cfg);
+
+  AM_GPU_FBDRAW_T ctl;
+  ctl.x = (offset / 4) % cfg.width;
+  ctl.y = (offset / 4) / cfg.width;
+  ctl.pixels = (void *)buf;
+  ctl.h = 1;
+  ctl.w = len / 4;
+  ctl.sync = 1;
+  ioe_write(AM_GPU_FBDRAW, &ctl);
+
+  return len;
 }
 
 void timeofday(void *tv, void* tz) {
