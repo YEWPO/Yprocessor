@@ -15,7 +15,6 @@ word_t isa_csr_str2val(const char *s, bool *success) {
 
   for (i = 0; i < NR_CSR; i++) {
     if (csr_name(i) && strcmp(s, csr_name(i)) == 0) {
-      *success = true;
       return csr(i);
     }
   }
