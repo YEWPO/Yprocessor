@@ -1,4 +1,5 @@
 #include <common.h>
+#include <sys/time.h>
 
 #if defined(MULTIPROGRAM) && !defined(TIME_SHARING)
 # define MULTIPROGRAM_YIELD() yield()
@@ -38,6 +39,16 @@ size_t dispinfo_read(void *buf, size_t offset, size_t len) {
 
 size_t fb_write(const void *buf, size_t offset, size_t len) {
   return 0;
+}
+
+void timeofday(void *tv, void* tz) {
+  assert(tv != NULL && tz == NULL);
+
+  struct timeval *ptr = tv;
+  AM_TIMER_UPTIME_T uptime;
+  ioe_read(AM_TIMER_UPTIME, &uptime);
+  ptr->tv_sec = uptime.us / 1000000;
+  ptr->tv_usec = uptime.us % 1000000;
 }
 
 void init_device() {
