@@ -245,7 +245,10 @@ static word_t expr_calc(int l, int r, bool *success) {
     } else if (tokens[l].type == TK_REG) {
       bool reg_success = true;
       val = isa_reg_str2val(tokens[l].str + 1, &reg_success);
-      if (!reg_success) val = isa_csr_str2val(tokens[l].str + 1, &reg_success);
+      if (!reg_success) {
+        reg_success = true;
+        val = isa_csr_str2val(tokens[l].str + 1, &reg_success);
+      }
       *success &= reg_success;
       return val;
     } else {
