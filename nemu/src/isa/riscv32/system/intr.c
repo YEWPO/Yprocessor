@@ -16,11 +16,16 @@
 #include <isa.h>
 
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
-  /* TODO: Trigger an interrupt/exception with ``NO''.
-   * Then return the address of the interrupt/exception vector.
-   */
+  cpu.csr[MCAUSE] = NO;
+  cpu.csr[MEPC] = epc;
 
-  return 0;
+#ifdef CONFIG_ETRACE
+  log_write("Exception: \n"
+      "mcause: " FMT_WORD "\n"
+      "mepc: " FMT_WORD "\n", cpu.csr[MCAUSE], cpu.csr[MEPC]);
+#endif
+
+  return cpu.csr[MTVEC];
 }
 
 word_t isa_query_intr() {

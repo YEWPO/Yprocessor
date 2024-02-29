@@ -236,16 +236,20 @@ static word_t expr_calc(int l, int r, bool *success) {
       /* got a number */
       val = strtoull(tokens[l].str, NULL, 10);
 
-      *success = true;
       return val;
     } else if (tokens[l].type == TK_HEXNUM) {
       /* got a hex number */
       val = strtoull(tokens[l].str, NULL, 16);
 
-      *success = true;
       return val;
     } else if (tokens[l].type == TK_REG) {
-      val = isa_reg_str2val(tokens[l].str + 1, success);
+      bool reg_success = true;
+      val = isa_reg_str2val(tokens[l].str + 1, &reg_success);
+      if (!reg_success) {
+        reg_success = true;
+        val = isa_csr_str2val(tokens[l].str + 1, &reg_success);
+      }
+      *success &= reg_success;
       return val;
     } else {
       /* bad expression */
@@ -364,7 +368,6 @@ static word_t expr_calc(int l, int r, bool *success) {
       return 0;
     }
 
-    *success = true;
     val = !val;
     tokens[op_position].type = TK_HEXNUM;
     sprintf(tokens[op_position].str, FMT_WORD, val);
@@ -383,7 +386,6 @@ static word_t expr_calc(int l, int r, bool *success) {
       return 0;
     }
 
-    *success = true;
     val = ~val;
     tokens[op_position].type = TK_HEXNUM;
     sprintf(tokens[op_position].str, FMT_WORD, val);
@@ -402,7 +404,6 @@ static word_t expr_calc(int l, int r, bool *success) {
       return 0;
     }
 
-    *success = true;
     val = paddr_read(val, 8);
     tokens[op_position].type = TK_HEXNUM;
     sprintf(tokens[op_position].str, FMT_WORD, val);
@@ -421,7 +422,6 @@ static word_t expr_calc(int l, int r, bool *success) {
       return 0;
     }
 
-    *success = true;
     val = -val;
     tokens[op_position].type = TK_HEXNUM;
     sprintf(tokens[op_position].str, FMT_WORD, val);
@@ -434,12 +434,10 @@ static word_t expr_calc(int l, int r, bool *success) {
   }
   if (tokens[op_position].type == TK_OR) {
     if (val1 != 0) {
-      *success = true;
       return 1;
     }
   } else if (tokens[op_position].type == TK_AND) {
     if (val1 == 0) {
-      *success = true;
       return 0;
     }
   }
@@ -450,18 +448,14 @@ static word_t expr_calc(int l, int r, bool *success) {
   }
   if (tokens[op_position].type == TK_OR) {
     if (val2 != 0) {
-      *success = true;
       return 1;
     } else {
-      *success = true;
       return 0;
     }
   } else if (tokens[op_position].type == TK_AND) {
     if (val2 == 0) {
-      *success = true;
       return 0;
     } else {
-      *success = true;
       return 1;
     }
   }
@@ -511,7 +505,6 @@ static word_t expr_calc(int l, int r, bool *success) {
       Assert(0, "Operation need to do!");
   }
 
-  *success = true;
   return val;
 }
 
