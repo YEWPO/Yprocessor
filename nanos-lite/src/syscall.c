@@ -1,5 +1,6 @@
 #include <common.h>
 #include "syscall.h"
+#include <proc.h>
 
 const char *syscall_name[] = {
   "exit",
@@ -30,6 +31,7 @@ size_t fs_write(int fd, const void *buf, size_t len);
 size_t fs_lseek(int fd, size_t offset, int whence);
 int fs_close(int fd);
 void timeofday(void *tv, void* tz);
+void naive_uload(PCB *pcb, const char *filename);
 
 void do_syscall(Context *c) {
   uintptr_t a[4];
@@ -40,7 +42,7 @@ void do_syscall(Context *c) {
 
   switch (a[0]) {
     case SYS_exit:
-      halt(c->GPR2);
+      naive_uload(NULL, "/bin/nterm");
       break;
     case SYS_yield:
       c->GPRx = 0;
@@ -63,9 +65,9 @@ void do_syscall(Context *c) {
     case SYS_brk:
       c->GPRx = 0;
       break;
-    /* case SYS_execve:
+    case SYS_execve:
       naive_uload(NULL, (const char *)a[1]);
-      break; */
+      break;
     case SYS_gettimeofday:
       timeofday((void *)a[1], (void *)a[2]);
       c->GPRx = 0;

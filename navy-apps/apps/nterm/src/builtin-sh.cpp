@@ -23,6 +23,18 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
+  char buf[256];
+  int i = 0;
+
+  while (cmd[i] != ' ' && cmd[i] != '\n') {
+    buf[i] = cmd[i];
+    i++;
+  }
+  buf[i] = '\0';
+
+  setenv("PATH", "/bin", 0);
+
+  execvp(buf, NULL);
 }
 
 void builtin_sh_run() {
