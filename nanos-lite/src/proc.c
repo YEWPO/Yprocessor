@@ -7,6 +7,7 @@ static PCB pcb_boot = {};
 PCB *current = NULL;
 
 void naive_uload(PCB *pcb, const char *filename);
+void context_uload(PCB *pcb, const char *filename);
 
 void switch_boot_pcb() {
   current = &pcb_boot;
@@ -30,7 +31,7 @@ void init_proc() {
 
   Log("Initializing processes...");
 
-  context_kload(&pcb[0], hello_fun, (void *)1);
+  context_uload(&pcb[0], "/bin/pal");
   context_kload(&pcb[1], hello_fun, (void *)2);
   switch_boot_pcb();
 

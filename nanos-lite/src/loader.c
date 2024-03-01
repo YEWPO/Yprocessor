@@ -50,6 +50,10 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   return elf_ehdr.e_entry;
 }
 
+void context_uload(PCB *pcb, const char *path) {
+  pcb->cp = ucontext(NULL, (Area) { pcb, pcb + 1 }, (void (*)())loader(NULL, path));
+}
+
 void naive_uload(PCB *pcb, const char *filename) {
   uintptr_t entry = loader(pcb, filename);
   Log("Jump to entry = %p", entry);
