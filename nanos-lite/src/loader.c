@@ -51,7 +51,9 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
 }
 
 void context_uload(PCB *pcb, const char *path) {
-  pcb->cp = ucontext(NULL, (Area) { pcb, pcb + 1 }, (void (*)())loader(NULL, path));
+  AddrSpace as = { 0 };
+  pcb->cp = ucontext(&as, (Area) { pcb, pcb + 1 }, (void (*)())loader(NULL, path));
+  pcb->cp->GPRx = (uintptr_t)heap.end;
 }
 
 void naive_uload(PCB *pcb, const char *filename) {

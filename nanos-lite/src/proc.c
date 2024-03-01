@@ -40,7 +40,7 @@ void init_proc() {
 Context* schedule(Context *prev) {
   current->cp = prev;
 
-  static int pcb_idx = 0;
+  static int pcb_idx = MAX_NR_PROC - 1;
 
   while (1) {
     pcb_idx = (pcb_idx + 1) % MAX_NR_PROC;

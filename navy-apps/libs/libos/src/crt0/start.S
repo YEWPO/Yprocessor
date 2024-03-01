@@ -3,6 +3,7 @@ _start:
 
 #if defined(__ISA_AM_NATIVE__)
 
+  movq %rax, %rsp
   movq $0, %rbp
   // (rsp + 8) should be multiple of 16 when
   // control is transfered to the function entry point.
