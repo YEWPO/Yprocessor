@@ -50,10 +50,42 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   return elf_ehdr.e_entry;
 }
 
-void context_uload(PCB *pcb, const char *path) {
+void context_uload(PCB *pcb, const char *path, char *const argv[], char *const envp[]) {
   AddrSpace as = { 0 };
   pcb->cp = ucontext(&as, (Area) { pcb, pcb + 1 }, (void (*)())loader(NULL, path));
-  pcb->cp->GPRx = (uintptr_t)heap.end;
+
+  char *strarea = (char *)heap.end - 4096;
+  char **strtab = (char **)(strarea - 4096);
+  int *argc = (int *)strtab;
+  strtab++;
+
+  int idx;
+
+  idx = 0;
+  while (argv[idx] != NULL) {
+    strtab[idx] = strarea;
+
+    int len = strlen(argv[idx]) + 1;
+    strcpy(strarea, argv[idx]);
+    strarea += len;
+    idx++;
+  }
+  *argc = idx;
+  strtab[idx++] = NULL;
+  strtab += idx;
+
+  idx = 0;
+  while (envp[idx] != NULL) {
+    strtab[idx] = strarea;
+
+    int len = strlen(envp[idx]) + 1;
+    strcpy(strarea, envp[idx]);
+    strarea += len;
+    idx++;
+  }
+  strtab[idx] = NULL;
+
+  pcb->cp->GPRx = (uintptr_t)argc;
 }
 
 void naive_uload(PCB *pcb, const char *filename) {
