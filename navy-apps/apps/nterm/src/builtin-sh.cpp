@@ -45,7 +45,7 @@ static void sh_handle_cmd(const char *cmd) {
   }
   argv[argc] = NULL;
 
-  setenv("PATH", "/bin", 0);
+  setenv("PATH", "/bin:/usr/bin", 0);
 
   execvp(argv[0], argv);
 }
