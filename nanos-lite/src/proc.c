@@ -26,17 +26,18 @@ void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
   pcb->cp = kcontext((Area) { pcb, pcb + 1 }, entry, arg);
 }
 
-void init_proc() {
-  switch_boot_pcb();
+PCB *alloc_pcb() {
+  static int alloc_pcb_idx = 0;
+  assert(alloc_pcb_idx < MAX_NR_PROC);
 
-  Log("Initializing processes...");
+  PCB *new_pcb = &pcb[alloc_pcb_idx];
+  alloc_pcb_idx++;
 
-  char *argv[] = { "/bin/pal", "--skip", NULL };
-  char *envp[] = { NULL };
-  context_uload(&pcb[0], "/bin/pal", argv, envp);
-  context_kload(&pcb[1], hello_fun, (void *)2);
-  switch_boot_pcb();
+  return new_pcb;
+}
 
+PCB *get_current_pcb() {
+  return current;
 }
 
 Context* schedule(Context *prev) {
@@ -54,4 +55,17 @@ Context* schedule(Context *prev) {
   }
 
   return current->cp;
+}
+
+void init_proc() {
+  switch_boot_pcb();
+
+  Log("Initializing processes...");
+
+  char *rproc = "/bin/menu";
+  char *argv[] = { rproc, NULL };
+  char *envp[] = { NULL };
+  context_uload(alloc_pcb(), rproc, argv, envp);
+
+  switch_boot_pcb();
 }
