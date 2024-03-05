@@ -24,17 +24,30 @@ static void sh_prompt() {
 
 static void sh_handle_cmd(const char *cmd) {
   char buf[256];
+  int argc = 0;
+  char *argv[64] = { NULL };
+
+  int idx = 0;
   int i = 0;
 
-  while (cmd[i] != ' ' && cmd[i] != '\n') {
-    buf[i] = cmd[i];
-    i++;
+  while (1) {
+    argv[argc++] = buf + idx;
+
+    while (cmd[i] != ' ' && cmd[i] != '\n') {
+      buf[idx] = cmd[i];
+      idx++;
+      i++;
+    }
+    buf[idx++] = '\0';
+
+    while (cmd[i] == ' ') i++;
+    if (cmd[i] == '\n') break;
   }
-  buf[i] = '\0';
+  argv[argc] = NULL;
 
   setenv("PATH", "/bin", 0);
 
-  execvp(buf, NULL);
+  execvp(argv[0], argv);
 }
 
 void builtin_sh_run() {

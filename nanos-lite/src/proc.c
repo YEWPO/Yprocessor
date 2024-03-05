@@ -62,7 +62,7 @@ void init_proc() {
 
   Log("Initializing processes...");
 
-  char *rproc = "/bin/menu";
+  char *rproc = "/bin/nterm";
   char *argv[] = { rproc, NULL };
   char *envp[] = { NULL };
   context_uload(alloc_pcb(), rproc, argv, envp);

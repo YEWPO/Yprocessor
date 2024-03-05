@@ -51,9 +51,6 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
 }
 
 void context_uload(PCB *pcb, const char *path, char *const argv[], char *const envp[]) {
-  AddrSpace as = { 0 };
-  pcb->cp = ucontext(&as, (Area) { pcb, pcb + 1 }, (void (*)())loader(NULL, path));
-
   char *strarea = (char *)heap.end - 4096;
   char **strtab = (char **)(strarea - 4096);
   int *argc = (int *)strtab;
@@ -85,6 +82,8 @@ void context_uload(PCB *pcb, const char *path, char *const argv[], char *const e
   }
   strtab[idx] = NULL;
 
+  AddrSpace as = { 0 };
+  pcb->cp = ucontext(&as, (Area) { pcb, pcb + 1 }, (void (*)())loader(NULL, path));
   pcb->cp->GPRx = (uintptr_t)argc;
 }
 
