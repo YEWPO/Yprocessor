@@ -17,10 +17,10 @@ object playground extends ScalaModule with ScalafmtModule { m =>
   )
 
   def ivyDeps = Agg(
-    ivy"org.chipsalliance::chisel:6.1.0"
+    ivy"org.chipsalliance::chisel:6.2.0"
   )
   def scalacPluginIvyDeps = Agg(
-    ivy"org.chipsalliance:::chisel-plugin:6.1.0"
+    ivy"org.chipsalliance:::chisel-plugin:6.2.0"
   )
 
   object test extends ScalaTests with ScalaTest {

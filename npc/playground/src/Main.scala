@@ -1,6 +1,6 @@
 import circt.stage._
 
-object Elaborate extends App {
+object Main extends App {
   def top = new Top
 
   val firtoolOptions = Seq(
