@@ -1,5 +1,5 @@
 package core
 
-object Config {
+object CoreConfig {
   val XLEN = 64
 }
