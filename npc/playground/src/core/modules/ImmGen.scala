@@ -5,6 +5,7 @@ import core.modules.InstType._
 import core.Common._
 import chisel3.util.Cat
 import chisel3.util.MuxLookup
+import core.CoreConfig._
 
 object InstType {
   val typeWidth = 3
@@ -17,12 +18,12 @@ object InstType {
   val J = "b101".U
 }
 
-class ImmGen(xlen: Int) extends Module {
+class ImmGen extends Module {
   val io = IO(new Bundle {
-    val inst      = Input(UInt(xlen.W))
+    val inst      = Input(UInt(XLEN.W))
     val instType  = Input(UInt(typeWidth.W))
 
-    val imm       = Output(UInt(xlen.W))
+    val imm       = Output(UInt(XLEN.W))
   })
 
   val immR = asSInt(0.U)
@@ -32,7 +33,7 @@ class ImmGen(xlen: Int) extends Module {
   val immU = asSInt(Cat(io.inst(31, 12), 0.U(12.W)))
   val immJ = asSInt(Cat(io.inst(31), io.inst(19, 12), io.inst(20), io.inst(30, 21), 0.U(1.W)))
 
-  io.imm := MuxLookup(io.instType, 0.U(xlen.W))(Seq(
+  io.imm := MuxLookup(io.instType, 0.U(XLEN.W))(Seq(
     R -> immR.asUInt,
     I -> immI.asUInt,
     S -> immS.asUInt,

@@ -21,7 +21,7 @@ trait ImmGenBehavior {
     val imm = 0
 
     it should s"0x${inst.toHexString} R-type immediate is 0x${imm.toHexString}" in {
-      simulate(new ImmGen(XLEN)) { dut =>
+      simulate(new ImmGen) { dut =>
         dut.io.inst.poke(s"h${inst.toHexString}".U)
         dut.io.instType.poke(R)
         dut.clock.step()
@@ -34,7 +34,7 @@ trait ImmGenBehavior {
     val imm = sext(bits(inst, 31, 20), 12)
 
     it should s"0x${inst.toHexString} I-type immediate is 0x${imm.toHexString}" in {
-      simulate(new ImmGen(XLEN)) { dut =>
+      simulate(new ImmGen) { dut =>
         dut.io.inst.poke(s"h${inst.toHexString}".U)
         dut.io.instType.poke(I)
         dut.clock.step()
@@ -47,7 +47,7 @@ trait ImmGenBehavior {
     val imm = (sext(bits(inst, 31, 25), 7) << 5) | bits(inst, 11, 7)
 
     it should s"0x${inst.toHexString} S-type immediate is 0x${imm.toHexString}" in {
-      simulate(new ImmGen(XLEN)) { dut =>
+      simulate(new ImmGen) { dut =>
         dut.io.inst.poke(s"h${inst.toHexString}".U)
         dut.io.instType.poke(S)
         dut.clock.step()
@@ -60,7 +60,7 @@ trait ImmGenBehavior {
     val imm = (sext(bits(inst, 31, 31), 1) << 12) | (bits(inst, 7, 7) << 11) | (bits(inst, 30, 25) << 5) | (bits(inst, 11, 8) << 1)
 
     it should s"0x${inst.toHexString} B-type immediate is 0x${imm.toHexString}" in {
-      simulate(new ImmGen(XLEN)) { dut =>
+      simulate(new ImmGen) { dut =>
         dut.io.inst.poke(s"h${inst.toHexString}".U)
         dut.io.instType.poke(B)
         dut.clock.step()
@@ -73,7 +73,7 @@ trait ImmGenBehavior {
     val imm = sext(bits(inst, 31, 12), 20) << 12
 
     it should s"0x${inst.toHexString} U-type immediate is 0x${imm.toHexString}" in {
-      simulate(new ImmGen(XLEN)) { dut =>
+      simulate(new ImmGen) { dut =>
         dut.io.inst.poke(s"h${inst.toHexString}".U)
         dut.io.instType.poke(U)
         dut.clock.step()
@@ -86,7 +86,7 @@ trait ImmGenBehavior {
     val imm = (sext(bits(inst, 31, 31), 1) << 20) | (bits(inst, 19, 12) << 12) | (bits(inst, 20, 20) << 11) | (bits(inst, 30, 21) << 1)
 
     it should s"0x${inst.toHexString} J-type immediate is 0x${imm.toHexString}" in {
-      simulate(new ImmGen(XLEN)) { dut =>
+      simulate(new ImmGen) { dut =>
         dut.io.inst.poke(s"h${inst.toHexString}".U)
         dut.io.instType.poke(J)
         dut.clock.step()
