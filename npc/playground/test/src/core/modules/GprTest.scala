@@ -19,11 +19,11 @@ case class GprInputs(
 trait GprBehavior {
   this: AnyFlatSpec =>
 
-  def testGpr(input: GprInputs): Unit = {
+  def testGpr(idx: Int, input: GprInputs): Unit = {
     val src1 = if (input.rdLsu == input.rs1) input.dataLsu else if (input.rdWbu == input.rs1) input.dataWbu else 0
     val src2 = if (input.rdLsu == input.rs2) input.dataLsu else if (input.rdWbu == input.rs2) input.dataWbu else 0
 
-    it should s"x${input.rs1} is 0x${src1.toHexString}, x${input.rs2} is 0x${src2.toHexString}" in {
+    it should s"test $idx: x${input.rs1} is 0x${src1.toHexString}, x${input.rs2} is 0x${src2.toHexString}" in {
       simulate(new Gpr) { dut =>
         dut.io.rdWbu.poke(s"h${input.rdWbu.toHexString}".U)
         dut.io.rdLsu.poke(s"h${input.rdLsu.toHexString}".U)
@@ -43,13 +43,14 @@ class GprTest extends AnyFlatSpec with GprBehavior {
   behavior of "Gpr"
 
   val rand = new Random
+  val testNum = 50
 
-  val rdWbu     = for (_ <- 0 to 10) yield rand.nextInt(GPR_NUM)
-  val rdLsu     = for (_ <- 0 to 10) yield rand.nextInt(GPR_NUM)
-  val dataWbu   = for (_ <- 0 to 10) yield rand.nextLong()
-  val dataLsu   = for (_ <- 0 to 10) yield rand.nextLong()
-  val rs1       = for (_ <- 0 to 10) yield rand.nextInt(GPR_NUM)
-  val rs2       = for (_ <- 0 to 10) yield rand.nextInt(GPR_NUM)
+  val rdWbu     = for (_ <- 0 to testNum) yield rand.nextInt(GPR_NUM)
+  val rdLsu     = for (_ <- 0 to testNum) yield rand.nextInt(GPR_NUM)
+  val dataWbu   = for (_ <- 0 to testNum) yield rand.nextLong()
+  val dataLsu   = for (_ <- 0 to testNum) yield rand.nextLong()
+  val rs1       = for (_ <- 0 to testNum) yield rand.nextInt(GPR_NUM)
+  val rs2       = for (_ <- 0 to testNum) yield rand.nextInt(GPR_NUM)
 
-  for (i <- 0 to 10) testGpr(GprInputs(rdWbu(i), dataWbu(i), rdLsu(i), dataLsu(i), rs1(i), rs2(i)))
+  for (i <- 0 to testNum) testGpr(i, GprInputs(rdWbu(i), dataWbu(i), rdLsu(i), dataLsu(i), rs1(i), rs2(i)))
 }
