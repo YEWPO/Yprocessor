@@ -6,6 +6,7 @@ import core.Common._
 import core.modules.AluOp._
 import chisel3.util.log2Up
 import chisel3.util.MuxCase
+import chisel3.util.MuxLookup
 
 object AluOp {
   val aluOpLen = 6
@@ -59,33 +60,33 @@ class Alu extends Module {
   val divByZero = !io.src2.andR
   val overflow  = io.src1(XLEN - 1).andR & !io.src1(XLEN - 2, 0).orR & io.src2.andR
 
-  val pMul    = io.src1.asSInt    *     io.src2.asSInt
-  val pMulsu  = io.src1.asSInt    *     io.src2
-  val pMulu   = io.src1           *     io.src2
-  val pDiv    = io.src1.asSInt    /     io.src2.asSInt
-  val pDivu   = io.src1           /     io.src2
-  val pRem    = io.src1.asSInt    %     io.src2.asSInt
-  val pRemu   = io.src1           %     io.src2
+  val pMul    = io.src1.asSInt      *     io.src2.asSInt
+  val pMulsu  = io.src1.asSInt      *     io.src2
+  val pMulu   = io.src1             *     io.src2
+  val pDiv    = io.src1.asSInt      /     io.src2.asSInt
+  val pDivu   = io.src1             /     io.src2
+  val pRem    = io.src1.asSInt      %     io.src2.asSInt
+  val pRemu   = io.src1             %     io.src2
 
-  val add     = io.src1           +     io.src2
-  val sll     = io.src1           <<    io.src2(shamtWidthXlen - 1, 0)
-  val slt     = io.src1.asSInt    <     io.src2.asSInt
-  val sltu    = io.src1           <     io.src2
-  val xor     = io.src1           ^     io.src2
-  val srl     = io.src1           >>    io.src2(shamtWidthXlen - 1, 0)
-  val or      = io.src1           |     io.src2
-  val and     = io.src1           &     io.src2
+  val add     = io.src1             +     io.src2
+  val sll     = io.src1             <<    io.src2(shamtWidthXlen - 1, 0)
+  val slt     = io.src1.asSInt      <     io.src2.asSInt
+  val sltu    = io.src1             <     io.src2
+  val xor     = io.src1             ^     io.src2
+  val srl     = io.src1             >>    io.src2(shamtWidthXlen - 1, 0)
+  val or      = io.src1             |     io.src2
+  val and     = io.src1             &     io.src2
 
-  val sub     = io.src1           -     io.src2
-  val sra     = io.src1.asSInt    >>    io.src2(shamtWidthXlen - 1, 0)
+  val sub     = io.src1             -     io.src2
+  val sra     = (io.src1.asSInt     >>    io.src2(shamtWidthXlen - 1, 0)).asUInt
 
   val mul     = pMul(XLEN - 1, 0)
-  val mulh    = pMul(2 * XLEN - 1, 2 * XLEN)
-  val mulhsu  = pMulsu(2 * XLEN - 1, 2 * XLEN)
-  val mulhu   = pMulu(2 * XLEN - 1, 2 * XLEN)
-  val div     = MuxCase(pDiv, Seq(divByZero -> uMax(XLEN), overflow -> sMin(XLEN)))
+  val mulh    = pMul(2 * XLEN - 1, XLEN)
+  val mulhsu  = pMulsu(2 * XLEN - 1, XLEN)
+  val mulhu   = pMulu(2 * XLEN - 1, XLEN)
+  val div     = MuxCase(pDiv.asUInt, Seq(divByZero -> uMax(XLEN), overflow -> sMin(XLEN)))
   val divu    = Mux(divByZero, uMax(XLEN), pDivu)
-  val rem     = MuxCase(pRem, Seq(divByZero -> io.src1, overflow -> 0.U(XLEN.W)))
+  val rem     = MuxCase(pRem.asUInt, Seq(divByZero -> io.src1, overflow -> 0.U(XLEN.W)))
   val remu    = Mux(divByZero, io.src1, pRemu)
 
   /** word ops */
@@ -97,22 +98,57 @@ class Alu extends Module {
   val divByZeroW = !src2w.andR
   val overflowW  = src1w(31).andR & !src1w(30, 0).orR & src2w.andR
 
-  val pMulw   = src1w.asSInt    *     src2w.asSInt
-  val pDivw   = src1w.asSInt    /     src2w.asSInt
-  val pDivuw  = src1w           /     src2w
-  val pRemw   = src1w.asSInt    %     src2w.asSInt
-  val pRemuw  = src1w           %     src2w
+  val pMulw   = src1w.asSInt      *     src2w.asSInt
+  val pDivw   = src1w.asSInt      /     src2w.asSInt
+  val pDivuw  = src1w             /     src2w
+  val pRemw   = src1w.asSInt      %     src2w.asSInt
+  val pRemuw  = src1w             %     src2w
 
-  val addw    = src1w           +     src2w
-  val sllw    = src1w           <<    src2w(shamtWidth32 - 1, 0)
-  val srlw    = src1w           >>    src2w(shamtWidth32 - 1, 0)
+  val addw    = src1w             +     src2w
+  val sllw    = src1w             <<    src2w(shamtWidth32 - 1, 0)
+  val srlw    = src1w             >>    src2w(shamtWidth32 - 1, 0)
 
-  val subw    = src1w           -     src2w
-  val sraw    = src1w.asSInt    >>    src2w(shamtWidth32 - 1, 0)
+  val subw    = src1w             -     src2w
+  val sraw    = (src1w.asSInt     >>    src2w(shamtWidth32 - 1, 0)).asUInt
 
   val mulw    = pMulw(31, 0)
-  val divw    = MuxCase(pDivw, Seq(divByZeroW -> uMax(32), overflowW -> sMin(32)))
+  val divw    = MuxCase(pDivw.asUInt, Seq(divByZeroW -> uMax(32), overflowW -> sMin(32)))
   val divuw   = Mux(divByZeroW, uMax(32), pDivuw)
-  val remw    = MuxCase(pRemw, Seq(divByZeroW -> src1w, overflowW -> 0.U(32.W)))
+  val remw    = MuxCase(pRemw.asUInt, Seq(divByZeroW -> src1w, overflowW -> 0.U(32.W)))
   val remuw   = Mux(divByZeroW, src1w, pRemuw)
+
+  io.res := MuxLookup(io.aluOp, 0.U(XLEN.W))(Seq(
+    ADD       -> add,
+    SLL       -> sll,
+    SLT       -> slt,
+    SLTU      -> sltu,
+    XOR       -> xor,
+    SRL       -> srl,
+    OR        -> or,
+    AND       -> and,
+
+    SUB       -> sub,
+    SRA       -> sra,
+
+    ADDW      -> addw,
+    SUBW      -> subw,
+    SLLW      -> sllw,
+    SRLW      -> srlw,
+    SRAW      -> sraw,
+
+    MUL       -> mul,
+    MULH      -> mulh,
+    MULHSU    -> mulhsu,
+    MULHU     -> mulhu,
+    DIV       -> div,
+    DIVU      -> divu,
+    REM       -> rem,
+    REMU      -> remu,
+
+    MULW      -> mulw,
+    DIVW      -> divw,
+    DIVUW     -> divuw,
+    REMW      -> remw,
+    REMUW     -> remuw 
+  ))
 }
