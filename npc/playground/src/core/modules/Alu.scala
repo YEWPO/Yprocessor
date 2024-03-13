@@ -130,11 +130,11 @@ class Alu extends Module {
     SUB       -> sub,
     SRA       -> sra,
 
-    ADDW      -> addw,
-    SUBW      -> subw,
-    SLLW      -> sllw,
-    SRLW      -> srlw,
-    SRAW      -> sraw,
+    ADDW      -> asSInt(addw).asUInt,
+    SUBW      -> asSInt(subw).asUInt,
+    SLLW      -> asSInt(sllw).asUInt,
+    SRLW      -> asSInt(srlw).asUInt,
+    SRAW      -> asSInt(sraw).asUInt,
 
     MUL       -> mul,
     MULH      -> mulh,
@@ -145,10 +145,10 @@ class Alu extends Module {
     REM       -> rem,
     REMU      -> remu,
 
-    MULW      -> mulw,
-    DIVW      -> divw,
-    DIVUW     -> divuw,
-    REMW      -> remw,
-    REMUW     -> remuw 
+    MULW      -> asSInt(mulw).asUInt,
+    DIVW      -> asSInt(divw).asUInt,
+    DIVUW     -> asSInt(divuw).asUInt,
+    REMW      -> asSInt(remw).asUInt,
+    REMUW     -> asSInt(remuw).asUInt
   ))
 }
