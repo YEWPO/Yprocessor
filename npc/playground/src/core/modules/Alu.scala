@@ -132,7 +132,7 @@ class Alu extends Module {
 
     ADDW      -> asSInt(addw).asUInt,
     SUBW      -> asSInt(subw).asUInt,
-    SLLW      -> asSInt(sllw).asUInt,
+    SLLW      -> asSInt(getWord(sllw)).asUInt,
     SRLW      -> asSInt(srlw).asUInt,
     SRAW      -> asSInt(sraw).asUInt,
 
