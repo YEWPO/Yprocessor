@@ -87,4 +87,32 @@ class Alu extends Module {
   val divu    = Mux(divByZero, uMax(XLEN), pDivu)
   val rem     = MuxCase(pRem, Seq(divByZero -> io.src1, overflow -> 0.U(XLEN.W)))
   val remu    = Mux(divByZero, io.src1, pRemu)
+
+  /** word ops */
+  val shamtWidth32 = log2Up(32)
+
+  val src1w = getWord(io.src1)
+  val src2w = getWord(io.src2)
+
+  val divByZeroW = !src2w.andR
+  val overflowW  = src1w(31).andR & !src1w(30, 0).orR & src2w.andR
+
+  val pMulw   = src1w.asSInt    *     src2w.asSInt
+  val pDivw   = src1w.asSInt    /     src2w.asSInt
+  val pDivuw  = src1w           /     src2w
+  val pRemw   = src1w.asSInt    %     src2w.asSInt
+  val pRemuw  = src1w           %     src2w
+
+  val addw    = src1w           +     src2w
+  val sllw    = src1w           <<    src2w(shamtWidth32 - 1, 0)
+  val srlw    = src1w           >>    src2w(shamtWidth32 - 1, 0)
+
+  val subw    = src1w           -     src2w
+  val sraw    = src1w.asSInt    >>    src2w(shamtWidth32 - 1, 0)
+
+  val mulw    = pMulw(31, 0)
+  val divw    = MuxCase(pDivw, Seq(divByZeroW -> uMax(32), overflowW -> sMin(32)))
+  val divuw   = Mux(divByZeroW, uMax(32), pDivuw)
+  val remw    = MuxCase(pRemw, Seq(divByZeroW -> src1w, overflowW -> 0.U(32.W)))
+  val remuw   = Mux(divByZeroW, src1w, pRemuw)
 }

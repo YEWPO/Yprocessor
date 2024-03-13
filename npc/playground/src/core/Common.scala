@@ -20,6 +20,8 @@ object Common {
     Cat(Fill(extendLen, bits(len - 1)), bits).asSInt
   }
 
+  def getWord[T <: Bits](bits: T): UInt = bits(31, 0)
+
   def uMax(len: Int): UInt = Fill(len, "b1".U(1.W))
 
   def sMax(len: Int): UInt = Cat("b0".U(1.W), uMax(len - 1))
