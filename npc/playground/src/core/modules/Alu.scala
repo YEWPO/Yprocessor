@@ -145,7 +145,7 @@ class Alu extends Module {
     REM       -> rem,
     REMU      -> remu,
 
-    MULW      -> asSInt(mulw).asUInt,
+    MULW      -> asSInt(getWord(mulw)).asUInt,
     DIVW      -> asSInt(divw).asUInt,
     DIVUW     -> asSInt(divuw).asUInt,
     REMW      -> asSInt(remw).asUInt,
