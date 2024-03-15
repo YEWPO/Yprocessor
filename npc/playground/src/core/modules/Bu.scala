@@ -46,5 +46,5 @@ class Bu extends Module {
   ))
 
   io.control := control
-  io.dnpc := Mux(control, Cat(io.tpc(XLEN - 1, 1), 0.U(1.W)), 0.U(XLEN.U))
+  io.dnpc := Mux(control, Cat(io.tpc(XLEN - 1, 1), 0.U(1.W)), 0.U(XLEN.W))
 }
