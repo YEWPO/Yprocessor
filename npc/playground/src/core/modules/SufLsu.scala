@@ -23,12 +23,12 @@ class SufLsu extends Module {
   val lwData = VecInit.tabulate(XLEN / wordLen) { i => io.src((i + 1) * wordLen - 1, i * wordLen) }
 
   io.data := MuxLookup(io.lsuOp, 0.U(XLEN.W))(Seq(
-    LB    -> asSInt(lbData(io.addr(strbLen - 1, 0))).asUInt,
-    LH    -> asSInt(lhData(io.addr(strbLen - 1, 1))).asUInt,
-    LW    -> asSInt(lwData(io.addr(strbLen - 1, 2))).asUInt,
+    LB    -> asSInt(lbData(io.addr(log2Up(strbLen) - 1, 0))).asUInt,
+    LH    -> asSInt(lhData(io.addr(log2Up(strbLen) - 1, 1))).asUInt,
+    LW    -> asSInt(lwData(io.addr(log2Up(strbLen) - 1, 2))).asUInt,
     LD    -> io.src,
-    LBU   -> asUInt(lbData(io.addr(strbLen - 1, 0))),
-    LHU   -> asUInt(lhData(io.addr(strbLen - 1, 1))),
-    LWU   -> asUInt(lwData(io.addr(strbLen - 1, 2)))
+    LBU   -> asUInt(lbData(io.addr(log2Up(strbLen) - 1, 0))),
+    LHU   -> asUInt(lhData(io.addr(log2Up(strbLen) - 1, 1))),
+    LWU   -> asUInt(lwData(io.addr(log2Up(strbLen) - 1, 2)))
   ))
 }
