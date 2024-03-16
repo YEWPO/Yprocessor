@@ -2,6 +2,10 @@ package core.modules
 
 import chisel3._
 import chisel3.util.BitPat
+import chisel3.util.ListLookup
+import InstList._
+import core.stages.ExuSrc1._
+import core.stages.ExuSrc2._
 
 object InstList {
   val LUI       = BitPat("b???????_?????_?????_???_?????_01101_11")
@@ -91,4 +95,98 @@ object InstList {
 }
 
 class Decoder extends Module {
+  val io = IO(new Bundle {
+    val inst = Input(UInt(32.W))
+  })
+
+  /**                                      rs1,     rs2,    rd,     src1,     src2,     alu,    bu,     lsu */
+  val decodeResult = ListLookup(io.inst,
+                                      List(0.U,     0.U,    0.U,    SRC1,     SRC2,     ADD,    0.U,    0.U),
+    Array(
+      LUI       ->                    List(),
+      AUIPC     ->                    List(),
+
+      ADDI      ->                    List(),
+      SLLI      ->                    List(),
+      SLTI      ->                    List(),
+      SLTIU     ->                    List(),
+      XORI      ->                    List(),
+      SRLI      ->                    List(),
+      SRAI      ->                    List(),
+      ORI       ->                    List(),
+      ANDI      ->                    List(),
+
+      ADD       ->                    List(),
+      SUB       ->                    List(),
+      SLL       ->                    List(),
+      SLT       ->                    List(),
+      SLTU      ->                    List(),
+      XOR       ->                    List(),
+      SRL       ->                    List(),
+      SRA       ->                    List(),
+      OR        ->                    List(),
+      AND       ->                    List(),
+
+      ADDIW     ->                    List(),
+      SLLIW     ->                    List(),
+      SRLIW     ->                    List(),
+      SRAIW     ->                    List(),
+
+      ADDW      ->                    List(),
+      SUBW      ->                    List(),
+      SLLW      ->                    List(),
+      SRLW      ->                    List(),
+      SRAW      ->                    List(),
+
+      JAL       ->                    List(),
+      JALR      ->                    List(),
+
+      BEQ       ->                    List(),
+      BNE       ->                    List(),
+      BLT       ->                    List(),
+      BGE       ->                    List(),
+      BLTU      ->                    List(),
+      BGEU      ->                    List(),
+
+      LB        ->                    List(),
+      LH        ->                    List(),
+      LW        ->                    List(),
+      LD        ->                    List(),
+      LBU       ->                    List(),
+      LHU       ->                    List(),
+      LWU       ->                    List(),
+
+      SB        ->                    List(),
+      SH        ->                    List(),
+      SW        ->                    List(),
+      SD        ->                    List(),
+
+      MUL       ->                    List(),
+      MULH      ->                    List(),
+      MULHSU    ->                    List(),
+      MULHU     ->                    List(),
+      MULW      ->                    List(),
+
+      DIV       ->                    List(),
+      DIVU      ->                    List(),
+      REM       ->                    List(),
+      REMU      ->                    List(),
+
+      DIVW      ->                    List(),
+      DIVUW     ->                    List(),
+      REMW      ->                    List(),
+      REMUW     ->                    List(),
+
+      CSRRW     ->                    List(),
+      CSRRS     ->                    List(),
+      CSRRC     ->                    List(),
+      CSRRWI    ->                    List(),
+      CSRRSI    ->                    List(),
+      CSRRCI    ->                    List(),
+
+      EBREAK    ->                    List(),
+      ECALL     ->                    List(),
+      MRET      ->                    List()
+    )
+  )
 }
