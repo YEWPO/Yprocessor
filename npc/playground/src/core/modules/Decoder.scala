@@ -91,7 +91,17 @@ object InstList {
 
 class Decoder extends Module {
   val io = IO(new Bundle {
-    val inst = Input(UInt(32.W))
+    val inst        = Input(UInt(32.W))
+
+    val instType    = Output(UInt(typeWidth.W))
+    val rs1         = Output(UInt(5.W))
+    val rs2         = Output(UInt(5.W))
+    val rd          = Output(UInt(5.W))
+    val src1Sel     = Output(Bool())
+    val src2Sel     = Output(Bool())
+    val aluOp       = Output(UInt(aluOpLen.W))
+    val buOp        = Output(UInt(buOpLen.W))
+    val lsuOp       = Output(UInt(lsuOpLen.W))
   })
 
   val rs1 = io.inst(19, 15)
@@ -179,4 +189,14 @@ class Decoder extends Module {
       ebreak    ->                    List(0.U,   0.U,      0.U,    0.U,    SRC1,     SRC2,     0.U,    0.U,    0.U)
     )
   )
+
+  io.instType     := decodeResult(0)
+  io.rs1          := decodeResult(1)
+  io.rs2          := decodeResult(2)
+  io.rd           := decodeResult(3)
+  io.src1Sel      := decodeResult(4)
+  io.src2Sel      := decodeResult(5)
+  io.aluOp        := decodeResult(6)
+  io.buOp         := decodeResult(7)
+  io.lsuOp        := decodeResult(8)
 }
