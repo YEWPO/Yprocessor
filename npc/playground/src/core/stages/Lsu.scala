@@ -13,9 +13,9 @@ object LsuOp {
   val LH    = "b0_1_001".U
   val LW    = "b0_1_010".U
   val LD    = "b0_1_011".U
-  val LBU   = "b0_1_000".U
-  val LHU   = "b0_1_001".U
-  val LWU   = "b0_1_010".U
+  val LBU   = "b0_1_100".U
+  val LHU   = "b0_1_101".U
+  val LWU   = "b0_1_110".U
 
   val SB    = "b1_0_000".U
   val SH    = "b1_0_001".U
