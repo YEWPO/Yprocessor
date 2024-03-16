@@ -7,16 +7,16 @@ import chisel3.util.MuxLookup
 import chisel3.util.Cat
 
 object BuOp {
-  val buOpLen = 3
+  val buOpLen = 4
 
-  val BEQ     = "b000".U
-  val BNE     = "b001".U
-  val JAL     = "b010".U
-  val JALR    = "b011".U
-  val BLT     = "b100".U
-  val BGE     = "b101".U
-  val BLTU    = "b110".U
-  val BGEU    = "b111".U
+  val BEQ     = "b1_000".U
+  val BNE     = "b1_001".U
+  val JAL     = "b1_010".U
+  val JALR    = "b1_011".U
+  val BLT     = "b1_100".U
+  val BGE     = "b1_101".U
+  val BLTU    = "b1_110".U
+  val BGEU    = "b1_111".U
 }
 
 class Bu extends Module {
