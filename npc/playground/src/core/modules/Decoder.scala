@@ -6,6 +6,7 @@ import chisel3.util.ListLookup
 import InstList._
 import core.stages.ExuSrc1._
 import core.stages.ExuSrc2._
+import core.modules.InstType._
 
 object InstList {
   val LUI       = BitPat("b???????_?????_?????_???_?????_01101_11")
@@ -99,9 +100,13 @@ class Decoder extends Module {
     val inst = Input(UInt(32.W))
   })
 
-  /**                                      rs1,     rs2,    rd,     src1,     src2,     alu,    bu,     lsu */
+  val rs1 = io.inst(19, 15)
+  val rs2 = io.inst(24, 20)
+  val rd =  io.inst(11, 7)
+
+  /**                                      type,  rs1,     rs2,    rd,     src1,     src2,     alu,    bu,     lsu */
   val decodeResult = ListLookup(io.inst,
-                                      List(0.U,     0.U,    0.U,    SRC1,     SRC2,     ADD,    0.U,    0.U),
+                                      List(R,     0.U,     0.U,    0.U,    SRC1,     SRC2,     ADD,    0.U,    0.U),
     Array(
       LUI       ->                    List(),
       AUIPC     ->                    List(),
