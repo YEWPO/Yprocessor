@@ -102,91 +102,96 @@ class Decoder extends Module {
     val aluOp       = Output(UInt(aluOpLen.W))
     val buOp        = Output(UInt(buOpLen.W))
     val lsuOp       = Output(UInt(lsuOpLen.W))
+    val kill        = Output(Bool())
+    val invalid     = Output(Bool())
   })
+
+  val Y = true.B
+  val N = false.B
 
   val rs1 = io.inst(19, 15)
   val rs2 = io.inst(24, 20)
   val rd =  io.inst(11, 7)
 
-  /**                                      type,  rs1,      rs2,    rd,     src1,     src2,     alu,    bu,     lsu */
+  /**                                      type,  rs1,      rs2,    rd,     src1,     src2,     alu,    bu,     lsu,    kill,     invalid */
   val decodeResult = ListLookup(io.inst,
-  /** default   -> */                 List(0.U,   0.U,      0.U,    0.U,    SRC1,     SRC2,     0.U,    0.U,    0.U),
+  /** default   -> */                 List(0.U,   0.U,      0.U,    0.U,    SRC1,     SRC2,     0.U,    0.U,    0.U,    N,        Y),
     Array(
-      lui       ->                    List(U,     0.U,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    0.U),
-      auipc     ->                    List(U,     0.U,      0.U,    rd,     PC,       IMM,      ADD,    0.U,    0.U),
+      lui       ->                    List(U,     0.U,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    0.U,    N,        N),
+      auipc     ->                    List(U,     0.U,      0.U,    rd,     PC,       IMM,      ADD,    0.U,    0.U,    N,        N),
 
-      addi      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    0.U),
-      slli      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLL,    0.U,    0.U),
-      slti      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLT,    0.U,    0.U),
-      sltiu     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLTU,   0.U,    0.U),
-      xori      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      XOR,    0.U,    0.U),
-      srli      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRL,    0.U,    0.U),
-      srai      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRA,    0.U,    0.U),
-      ori       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      OR,     0.U,    0.U),
-      andi      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      AND,    0.U,    0.U),
+      addi      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    0.U,    N,        N),
+      slli      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLL,    0.U,    0.U,    N,        N),
+      slti      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLT,    0.U,    0.U,    N,        N),
+      sltiu     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLTU,   0.U,    0.U,    N,        N),
+      xori      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      XOR,    0.U,    0.U,    N,        N),
+      srli      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRL,    0.U,    0.U,    N,        N),
+      srai      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRA,    0.U,    0.U,    N,        N),
+      ori       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      OR,     0.U,    0.U,    N,        N),
+      andi      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      AND,    0.U,    0.U,    N,        N),
 
-      add       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     ADD,    0.U,    0.U),
-      sub       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SUB,    0.U,    0.U),
-      sll       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLL,    0.U,    0.U),
-      slt       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLT,    0.U,    0.U),
-      sltu      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLTU,   0.U,    0.U),
-      xor       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     XOR,    0.U,    0.U),
-      srl       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRL,    0.U,    0.U),
-      sra       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRA,    0.U,    0.U),
-      or        ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     OR,     0.U,    0.U),
-      and       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     AND,    0.U,    0.U),
+      add       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     ADD,    0.U,    0.U,    N,        N),
+      sub       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SUB,    0.U,    0.U,    N,        N),
+      sll       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLL,    0.U,    0.U,    N,        N),
+      slt       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLT,    0.U,    0.U,    N,        N),
+      sltu      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLTU,   0.U,    0.U,    N,        N),
+      xor       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     XOR,    0.U,    0.U,    N,        N),
+      srl       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRL,    0.U,    0.U,    N,        N),
+      sra       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRA,    0.U,    0.U,    N,        N),
+      or        ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     OR,     0.U,    0.U,    N,        N),
+      and       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     AND,    0.U,    0.U,    N,        N),
 
-      addiw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADDW,   0.U,    0.U),
-      slliw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLLW,   0.U,    0.U),
-      srliw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRLW,   0.U,    0.U),
-      sraiw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRAW,   0.U,    0.U),
+      addiw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADDW,   0.U,    0.U,    N,        N),
+      slliw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SLLW,   0.U,    0.U,    N,        N),
+      srliw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRLW,   0.U,    0.U,    N,        N),
+      sraiw     ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      SRAW,   0.U,    0.U,    N,        N),
 
-      addw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     ADDW,   0.U,    0.U),
-      subw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SUBW,   0.U,    0.U),
-      sllw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLLW,   0.U,    0.U),
-      srlw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLLW,   0.U,    0.U),
-      sraw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRAW,   0.U,    0.U),
+      addw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     ADDW,   0.U,    0.U,    N,        N),
+      subw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SUBW,   0.U,    0.U,    N,        N),
+      sllw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLLW,   0.U,    0.U,    N,        N),
+      srlw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLLW,   0.U,    0.U,    N,        N),
+      sraw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRAW,   0.U,    0.U,    N,        N),
 
-      jal       ->                    List(J,     0.U,      0.U,    rd,     PC,       IMM,      ADD,    JAL,    0.U),
-      jalr      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    JALR,   0.U),
+      jal       ->                    List(J,     0.U,      0.U,    rd,     PC,       IMM,      ADD,    JAL,    0.U,    N,        N),
+      jalr      ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    JALR,   0.U,    N,        N),
 
-      beq       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BEQ,    0.U),
-      bne       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BNE,    0.U),
-      blt       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BLT,    0.U),
-      bge       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BGE,    0.U),
-      bltu      ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BLTU,   0.U),
-      bgeu      ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BGEU,   0.U),
+      beq       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BEQ,    0.U,    N,        N),
+      bne       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BNE,    0.U,    N,        N),
+      blt       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BLT,    0.U,    N,        N),
+      bge       ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BGE,    0.U,    N,        N),
+      bltu      ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BLTU,   0.U,    N,        N),
+      bgeu      ->                    List(B,     rs1,      rs2,    0.U,    PC,       IMM,      ADD,    BGEU,   0.U,    N,        N),
 
-      lb        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LB ),
-      lh        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LH ),
-      lw        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LW ),
-      ld        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LD ),
-      lbu       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LBU),
-      lhu       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LHU),
-      lwu       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LWU),
+      lb        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LB,     N,        N),
+      lh        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LH,     N,        N),
+      lw        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LW,     N,        N),
+      ld        ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LD,     N,        N),
+      lbu       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LBU,    N,        N),
+      lhu       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LHU,    N,        N),
+      lwu       ->                    List(I,     rs1,      0.U,    rd,     SRC1,     IMM,      ADD,    0.U,    LWU,    N,        N),
 
-      sb        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SB ),
-      sh        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SH ),
-      sw        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SW ),
-      sd        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SD ),
+      sb        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SB,     N,        N),
+      sh        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SH,     N,        N),
+      sw        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SW,     N,        N),
+      sd        ->                    List(S,     rs1,      rs2,    0.U,    SRC1,     IMM,      ADD,    0.U,    SD,     N,        N),
 
-      mul       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MUL,    0.U,    0.U),
-      mulh      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULH,   0.U,    0.U),
-      mulhsu    ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULHSU, 0.U,    0.U),
-      mulhu     ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULHU,  0.U,    0.U),
-      mulw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULW,   0.U,    0.U),
+      mul       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MUL,    0.U,    0.U,    N,        N),
+      mulh      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULH,   0.U,    0.U,    N,        N),
+      mulhsu    ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULHSU, 0.U,    0.U,    N,        N),
+      mulhu     ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULHU,  0.U,    0.U,    N,        N),
+      mulw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     MULW,   0.U,    0.U,    N,        N),
 
-      div       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIV,    0.U,    0.U),
-      divu      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIVU,   0.U,    0.U),
-      rem       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REM,    0.U,    0.U),
-      remu      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REMU,   0.U,    0.U),
+      div       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIV,    0.U,    0.U,    N,        N),
+      divu      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIVU,   0.U,    0.U,    N,        N),
+      rem       ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REM,    0.U,    0.U,    N,        N),
+      remu      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REMU,   0.U,    0.U,    N,        N),
 
-      divw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIVW,   0.U,    0.U),
-      divuw     ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIVUW,  0.U,    0.U),
-      remw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REMW,   0.U,    0.U),
-      remuw     ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REMUW,  0.U,    0.U),
+      divw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIVW,   0.U,    0.U,    N,        N),
+      divuw     ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     DIVUW,  0.U,    0.U,    N,        N),
+      remw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REMW,   0.U,    0.U,    N,        N),
+      remuw     ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     REMUW,  0.U,    0.U,    N,        N),
 
-      ebreak    ->                    List(0.U,   0.U,      0.U,    0.U,    SRC1,     SRC2,     0.U,    0.U,    0.U)
+      ebreak    ->                    List(0.U,   0.U,      0.U,    0.U,    SRC1,     SRC2,     0.U,    0.U,    0.U,    Y,        N)
     )
   )
 
@@ -199,4 +204,6 @@ class Decoder extends Module {
   io.aluOp        := decodeResult(6)
   io.buOp         := decodeResult(7)
   io.lsuOp        := decodeResult(8)
+  io.kill         := decodeResult(9)
+  io.invalid      := decodeResult(10)
 }
