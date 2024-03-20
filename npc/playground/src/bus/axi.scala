@@ -11,6 +11,10 @@ object AccessType extends ChiselEnum {
   val NORMAL, EXCLUSIVE = Value
 }
 
+object ResponseType extends ChiselEnum {
+  val OKAY, EXOKAY, SLVERR, DECERR = Value
+}
+
 class Axi4ReadAddrBundle extends Bundle {
   val id        = UInt(1.W)
   val addr      = UInt(XLEN.W)
@@ -26,21 +30,42 @@ class Axi4ReadAddrBundle extends Bundle {
 
 object Axi4ReadAddrBundle {
   def apply(addr: UInt, len: UInt = 0.U, size: UInt): Axi4ReadAddrBundle = {
-    val aw = Wire(new Axi4ReadAddrBundle)
+    val ar = Wire(new Axi4ReadAddrBundle)
 
     import BrustType._
     import AccessType._
-    aw.id     := 0.U
-    aw.addr   := addr
-    aw.len    := len
-    aw.size   := size
-    aw.burst  := INCR
-    aw.lock   := NORMAL
-    aw.cache  := 0.U
-    aw.prot   := 0.U
-    aw.qos    := 0.U
-    aw.region := 0.U
+    ar.id     := 0.U
+    ar.addr   := addr
+    ar.len    := len
+    ar.size   := size
+    ar.burst  := INCR
+    ar.lock   := NORMAL
+    ar.cache  := 0.U
+    ar.prot   := 0.U
+    ar.qos    := 0.U
+    ar.region := 0.U
 
-    aw
+    ar
+  }
+}
+
+class Axi4ReadDataBundle extends Bundle {
+  val id      = UInt(1.W)
+  val data    = UInt(XLEN.W)
+  val resp    = UInt(2.W)
+  val last    = Bool()
+}
+
+object Axi4ReadDataBundle {
+  import ResponseType._
+  def apply(data: UInt, resp: UInt = OKAY.asUInt, last: Bool = false.B): Axi4ReadDataBundle = {
+    val r = Wire(new Axi4ReadDataBundle)
+
+    r.id    := 0.U
+    r.data  := data
+    r.resp  := resp
+    r.last  := last
+
+    r
   }
 }
