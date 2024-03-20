@@ -49,17 +49,37 @@ object Axi4WriteAddrBundle {
   }
 }
 
+class Axi4WriteDataBundle extends Bundle {
+  val id      = UInt(1.W)
+  val data    = UInt(XLEN.W)
+  val strb    = UInt((XLEN / 8).W)
+  val last    = Bool()
+}
+
+object Axi4WriteDataBundle {
+  def apply(data: UInt, strb: UInt, last: Bool = false.B): Axi4WriteDataBundle = {
+    val w = Wire(new Axi4WriteDataBundle)
+
+    w.id    := 0.U
+    w.data  := data
+    w.strb  := strb
+    w.last  := last
+
+    w
+  }
+}
+
 class Axi4ReadAddrBundle extends Bundle {
-  val id        = UInt(1.W)
-  val addr      = UInt(XLEN.W)
-  val len       = UInt(8.W)
-  val size      = UInt(3.W)
-  val burst     = UInt(2.W)
-  val lock      = UInt(1.W)
-  val cache     = UInt(4.W)
-  val prot      = UInt(3.W)
-  val qos       = UInt(4.W)
-  val region    = UInt(4.W)
+  val id      = UInt(1.W)
+  val addr    = UInt(XLEN.W)
+  val len     = UInt(8.W)
+  val size    = UInt(3.W)
+  val burst   = UInt(2.W)
+  val lock    = UInt(1.W)
+  val cache   = UInt(4.W)
+  val prot    = UInt(3.W)
+  val qos     = UInt(4.W)
+  val region  = UInt(4.W)
 }
 
 object Axi4ReadAddrBundle {
