@@ -2,6 +2,7 @@ package bus
 
 import chisel3._
 import core.CoreConfig._
+import chisel3.util.Decoupled
 
 object BrustType extends ChiselEnum {
   val FIXED, INCR, WRAP = Value
@@ -139,4 +140,12 @@ object Axi4ReadDataBundle {
 
     r
   }
+}
+
+class Axi4Bundle extends Bundle {
+  val aw = Decoupled(new Axi4WriteAddrBundle)
+  val w  = Decoupled(new Axi4WriteDataBundle)
+  val b  = Flipped(Decoupled(new Axi4WriteRespBundle))
+  val ar = Decoupled(new Axi4ReadAddrBundle)
+  val r  = Flipped(Decoupled(new Axi4ReadDataBundle))
 }
