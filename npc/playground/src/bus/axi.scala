@@ -69,6 +69,23 @@ object Axi4WriteDataBundle {
   }
 }
 
+class Axi4WriteRespBundle extends Bundle {
+  val id      = UInt(1.W)
+  val resp    = UInt(2.W)
+}
+
+object Axi4WriteRespBundle {
+  def apply(): Axi4WriteRespBundle = {
+    val b = Wire(new Axi4WriteRespBundle)
+
+    import ResponseType._
+    b.id    := 0.U
+    b.resp  := OKAY
+
+    b
+  }
+}
+
 class Axi4ReadAddrBundle extends Bundle {
   val id      = UInt(1.W)
   val addr    = UInt(XLEN.W)
