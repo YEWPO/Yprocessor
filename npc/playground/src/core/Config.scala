@@ -7,3 +7,12 @@ object CoreConfig {
   val GPR_LEN       = 5
   val CSR_LEN       = 12
 }
+
+object IcacheConfig {
+  val ADDR_WIDTH    = 64
+  val DATA_WIDTH    = 64
+
+  val NSET          = 1 << 8
+  val NWAY          = 2
+  val BLOCK_SIZE    = 1 << 4
+}
