@@ -31,16 +31,7 @@ class Icache extends Module {
   import IcacheState._
   val stateReg      = RegInit(sIdle)
   val nextState     = Wire(IcacheState())
-
-  nextState := sIdle
-  switch(stateReg) {
-    is (sIdle) {
-      nextState := Mux(io.request.valid, sRead, sIdle)
-    }
-    is (sRead) {
-      nextState := Mux(io.request.valid, sRead, sIdle)
-    }
-  }
+  stateReg := nextState
 
   val offsetWidth   = log2Up(BLOCK_SIZE)
   val indexWidth    = log2Up(NSET)
@@ -69,4 +60,14 @@ class Icache extends Module {
 
   io.response.bits.data := VecInit.tabulate(nWord){ i => hitData((i + 1) * XLEN - 1, i * XLEN) }(offset)
   io.response.valid     := (stateReg === sRead) && hit
+
+  nextState := sIdle
+  switch(stateReg) {
+    is (sIdle) {
+      nextState := Mux(io.request.valid, sRead, sIdle)
+    }
+    is (sRead) {
+      nextState := Mux(io.request.valid, sRead, sIdle)
+    }
+  }
 }
