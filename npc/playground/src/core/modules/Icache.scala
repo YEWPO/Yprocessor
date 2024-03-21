@@ -12,6 +12,7 @@ import chisel3.util.MuxCase
 import bus.Axi4Bundle
 import bus.Axi4ReadAddrBundle
 import chisel3.util.Counter
+import chisel3.util.random.LFSR
 
 class IcacheRequest extends Bundle {
   val addr    = UInt(ADDR_WIDTH.W)
@@ -45,8 +46,8 @@ class Icache extends Module {
   val nWord         = BLOCK_SIZE / wordBtyes
 
   val vTable        = RegInit(VecInit(Seq.fill(NWAY)(0.U(NSET.W))))
-  val tagTable      = Seq.fill(NWAY)(SyncReadMem(NSET, UInt(tagWidth.W)))
-  val dataTable     = Seq.fill(NWAY, nWord)(SyncReadMem(NSET, Vec(wordBtyes, UInt(8.W))))
+  val tagTable      = Seq.fill(NWAY)(SyncReadMem(NSET, Vec(1, UInt(tagWidth.W))))
+  val dataTable     = Seq.fill(NWAY)(SyncReadMem(NSET, Vec(nWord, UInt(XLEN.W))))
 
   val tag           = io.request.bits.addr(XLEN - 1, XLEN - tagWidth)
   val index         = io.request.bits.addr(indexWidth + offsetWidth - 1, offsetWidth)
@@ -54,18 +55,25 @@ class Icache extends Module {
   val tagReg        = RegNext(tag)
   val indexReg      = RegNext(index)
   val offsetReg     = RegNext(offset)
+  val randReg       = LFSR(log2Up(NWAY))
+  val (readCnt, readWrap) = Counter(io.axi.r.fire, BLOCK_SIZE / wordBtyes)
 
   val ren           = nextState === sRead
 
-  val readTag       = tagTable.map(_.read(index, ren))
-  val readData      = dataTable.map(dataMem => Cat(dataMem.map(_.read(index, ren).asUInt).reverse))
+  val readTag       = tagTable.map(wayTagTable => Cat(wayTagTable.read(index, ren)))
+  val readData      = dataTable.map(wayDataTable => Cat(wayDataTable.read(index, ren).reverse))
 
-  val wayHitState   = readTag.zipWithIndex.map{ case (wayTag, i) => vTable(i)(indexReg) & (wayTag === tagReg) }
+  val wayHitState   = readTag.zipWithIndex.map{ case (wayTag, wayIndex) => vTable(wayIndex)(indexReg) & (wayTag === tagReg) }
+  val hitData       = readData.zipWithIndex.map{ case (wayData, wayIndex) => wayData & wayHitState(wayIndex).asUInt }.reduce((x, y) => x | y)
   val hit           = wayHitState.reduce((x, y) => x | y)
-  val hitData       = readData.zipWithIndex.map{ case (dataLine, i) => dataLine & wayHitState(i).asUInt }.reduce((x, y) => x | y)
 
   val refillData    = Reg(Vec(BLOCK_SIZE / wordBtyes, UInt(XLEN.W)))
-  val refillFin     = RegNext((stateReg === sRefill) && (nextState =/= sRefill))
+  val refillFin     = RegNext(readWrap)
+  when (refillFin) {
+    vTable(randReg) := vTable(randReg).bitSet(indexReg, true.B)
+    tagTable.zipWithIndex.foreach{ case (wayTag, wayIndex) => wayTag.write(indexReg, VecInit(tagReg), Seq(randReg === wayIndex.U)) }
+    dataTable.zipWithIndex.foreach{ case (wayDataTable, wayIndex) => wayDataTable.write(indexReg, refillData, Seq.fill(nWord)(randReg === wayIndex.U)) }
+  }
 
   val outData       = Mux(refillFin, refillData.asUInt, hitData)
 
@@ -79,7 +87,6 @@ class Icache extends Module {
     log2Up(wordBtyes).U
   )
 
-  val (readCnt, readWrap) = Counter(io.axi.r.fire, BLOCK_SIZE / wordBtyes)
   io.axi.r.ready := stateReg === sRefill
   when (io.axi.r.fire) {
     refillData(readCnt) := io.axi.r.bits.data
@@ -101,8 +108,7 @@ class Icache extends Module {
       nextState := Mux(io.axi.ar.fire, sRefill, sMiss)
     }
     is (sRefill) {
-      val lastData = io.axi.r.valid & io.axi.r.bits.last
-      nextState := Mux(lastData, sIdle, sRefill)
+      nextState := Mux(refillFin, sIdle, sRefill)
     }
   }
 }
