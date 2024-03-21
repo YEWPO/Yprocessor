@@ -8,6 +8,8 @@ import chisel3.util.is
 import chisel3.util.log2Up
 import core.CoreConfig._
 import chisel3.util.Cat
+import chisel3.util.MuxCase
+import bus.Axi4Bundle
 
 class IcacheRequest extends Bundle {
   val addr    = UInt(ADDR_WIDTH.W)
@@ -18,7 +20,7 @@ class IcacheResponse extends Bundle {
 }
 
 object IcacheState extends ChiselEnum {
-  val sIdle, sRead = Value
+  val sIdle, sRead, sMiss, sRefill = Value
 }
 
 class Icache extends Module {
@@ -26,6 +28,7 @@ class Icache extends Module {
     val abort         = Input(Bool())
     val request       = Flipped(Valid(new IcacheRequest))
     val response      = Valid(new IcacheResponse)
+    val axi           = new Axi4Bundle
   })
 
   import IcacheState._
@@ -67,7 +70,22 @@ class Icache extends Module {
       nextState := Mux(io.request.valid, sRead, sIdle)
     }
     is (sRead) {
-      nextState := Mux(io.request.valid, sRead, sIdle)
+      nextState := MuxCase(sIdle, Seq(
+        (hit && io.request.valid)           -> sRead,
+        (hit && !io.request.valid)          -> sIdle,
+        !hit                                -> sMiss
+      ))
+    }
+    is (sMiss) {
+      nextState := Mux(io.axi.ar.fire, sRefill, sMiss)
+    }
+    is (sRefill) {
+      val lastData = io.axi.r.valid & io.axi.r.bits.last
+      nextState := MuxCase(sIdle, Seq(
+        (lastData & io.request.valid)       -> sRead,
+        (lastData & !io.request.valid)      -> sIdle,
+        !lastData                           -> sRefill
+      ))
     }
   }
 }
