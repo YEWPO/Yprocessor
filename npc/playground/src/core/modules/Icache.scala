@@ -10,6 +10,7 @@ import core.CoreConfig._
 import chisel3.util.Cat
 import chisel3.util.MuxCase
 import bus.Axi4Bundle
+import bus.Axi4ReadAddrBundle
 
 class IcacheRequest extends Bundle {
   val addr    = UInt(ADDR_WIDTH.W)
@@ -71,6 +72,13 @@ class Icache extends Module {
 
   io.response.bits.data := VecInit.tabulate(nWord){ i => outData((i + 1) * XLEN - 1, i * XLEN) }(offsetReg)
   io.response.valid     := ((stateReg === sRead) && hit) || refillFin
+
+  io.axi.ar.valid := stateReg === sMiss
+  io.axi.ar.bits  := Axi4ReadAddrBundle(
+    Cat(tagReg, indexReg) << offsetWidth,
+    (BLOCK_SIZE / wordBtyes - 1).U,
+    log2Up(wordBtyes).U
+  )
 
   nextState := sIdle
   switch(stateReg) {
