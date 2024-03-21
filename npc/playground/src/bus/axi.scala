@@ -39,8 +39,8 @@ object Axi4WriteAddrBundle {
     aw.addr   := addr
     aw.len    := len
     aw.size   := size
-    aw.burst  := INCR
-    aw.lock   := NORMAL
+    aw.burst  := INCR.asUInt
+    aw.lock   := NORMAL.asUInt
     aw.cache  := 0.U
     aw.prot   := 0.U
     aw.qos    := 0.U
@@ -81,7 +81,7 @@ object Axi4WriteRespBundle {
 
     import ResponseType._
     b.id    := 0.U
-    b.resp  := OKAY
+    b.resp  := OKAY.asUInt
 
     b
   }
@@ -110,8 +110,8 @@ object Axi4ReadAddrBundle {
     ar.addr   := addr
     ar.len    := len
     ar.size   := size
-    ar.burst  := INCR
-    ar.lock   := NORMAL
+    ar.burst  := INCR.asUInt
+    ar.lock   := NORMAL.asUInt
     ar.cache  := 0.U
     ar.prot   := 0.U
     ar.qos    := 0.U

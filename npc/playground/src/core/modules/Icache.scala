@@ -9,10 +9,11 @@ import chisel3.util.log2Up
 import core.CoreConfig._
 import chisel3.util.Cat
 import chisel3.util.MuxCase
-import bus.Axi4Bundle
 import bus.Axi4ReadAddrBundle
 import chisel3.util.Counter
 import chisel3.util.random.LFSR
+import bus.Axi4ReadDataBundle
+import chisel3.util.Decoupled
 
 class IcacheRequest extends Bundle {
   val addr    = UInt(ADDR_WIDTH.W)
@@ -31,7 +32,10 @@ class Icache extends Module {
     val abort         = Input(Bool())
     val request       = Flipped(Valid(new IcacheRequest))
     val response      = Valid(new IcacheResponse)
-    val axi           = new Axi4Bundle
+    val axi           = new Bundle {
+      val ar = Decoupled(new Axi4ReadAddrBundle)
+      val r  = Flipped(Decoupled(new Axi4ReadDataBundle))
+    }
   })
 
   import IcacheState._
@@ -55,10 +59,11 @@ class Icache extends Module {
   val tagReg        = RegNext(tag)
   val indexReg      = RegNext(index)
   val offsetReg     = RegNext(offset)
-  val randReg       = LFSR(log2Up(NWAY))
+  val randReg       = LFSR(16)
   val (readCnt, readWrap) = Counter(io.axi.r.fire, BLOCK_SIZE / wordBtyes)
 
   val ren           = nextState === sRead
+  val randNum       = randReg(log2Up(NWAY) - 1, 0)
 
   val readTag       = tagTable.map(wayTagTable => Cat(wayTagTable.read(index, ren)))
   val readData      = dataTable.map(wayDataTable => Cat(wayDataTable.read(index, ren).reverse))
@@ -70,9 +75,9 @@ class Icache extends Module {
   val refillData    = Reg(Vec(BLOCK_SIZE / wordBtyes, UInt(XLEN.W)))
   val refillFin     = RegNext(readWrap)
   when (refillFin) {
-    vTable(randReg) := vTable(randReg).bitSet(indexReg, true.B)
-    tagTable.zipWithIndex.foreach{ case (wayTag, wayIndex) => wayTag.write(indexReg, VecInit(tagReg), Seq(randReg === wayIndex.U)) }
-    dataTable.zipWithIndex.foreach{ case (wayDataTable, wayIndex) => wayDataTable.write(indexReg, refillData, Seq.fill(nWord)(randReg === wayIndex.U)) }
+    vTable(randNum) := vTable(randNum).bitSet(indexReg, true.B)
+    tagTable.zipWithIndex.foreach{ case (wayTag, wayIndex) => wayTag.write(indexReg, VecInit(tagReg), Seq(randNum === wayIndex.U)) }
+    dataTable.zipWithIndex.foreach{ case (wayDataTable, wayIndex) => wayDataTable.write(indexReg, refillData, Seq.fill(nWord)(randNum === wayIndex.U)) }
   }
 
   val outData       = Mux(refillFin, refillData.asUInt, hitData)
