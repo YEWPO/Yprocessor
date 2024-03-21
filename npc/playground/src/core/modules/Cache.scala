@@ -1,7 +1,7 @@
 package core.modules
 
 import chisel3._
-import core.IcacheConfig._
+import core.CacheConfig._
 import chisel3.util.Valid
 import chisel3.util.switch
 import chisel3.util.is
@@ -16,32 +16,32 @@ import bus.Axi4ReadDataBundle
 import chisel3.util.Decoupled
 import chisel3.util.Fill
 
-class IcacheRequest extends Bundle {
+class CacheRequest extends Bundle {
   val addr    = UInt(ADDR_WIDTH.W)
 }
 
-class IcacheResponse extends Bundle {
+class CacheResponse extends Bundle {
   val data    = UInt(DATA_WIDTH.W)
 }
 
-object IcacheState extends ChiselEnum {
+object CacheState extends ChiselEnum {
   val sIdle, sRead, sMiss, sRefill = Value
 }
 
-class Icache extends Module {
+class Cache extends Module {
   val io = IO(new Bundle {
     val abort         = Input(Bool())
-    val request       = Flipped(Valid(new IcacheRequest))
-    val response      = Valid(new IcacheResponse)
+    val request       = Flipped(Valid(new CacheRequest))
+    val response      = Valid(new CacheResponse)
     val axi           = new Bundle {
       val ar = Decoupled(new Axi4ReadAddrBundle)
       val r  = Flipped(Decoupled(new Axi4ReadDataBundle))
     }
   })
 
-  import IcacheState._
+  import CacheState._
   val stateReg      = RegInit(sIdle)
-  val nextState     = Wire(IcacheState())
+  val nextState     = Wire(CacheState())
   stateReg := nextState
 
   val offsetWidth   = log2Up(BLOCK_SIZE)

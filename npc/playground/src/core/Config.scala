@@ -8,7 +8,7 @@ object CoreConfig {
   val CSR_LEN       = 12
 }
 
-object IcacheConfig {
+object CacheConfig {
   val ADDR_WIDTH    = 64
   val DATA_WIDTH    = 64
 
