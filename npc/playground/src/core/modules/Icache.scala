@@ -14,6 +14,7 @@ import chisel3.util.Counter
 import chisel3.util.random.LFSR
 import bus.Axi4ReadDataBundle
 import chisel3.util.Decoupled
+import chisel3.util.Fill
 
 class IcacheRequest extends Bundle {
   val addr    = UInt(ADDR_WIDTH.W)
@@ -69,7 +70,7 @@ class Icache extends Module {
   val readData      = dataTable.map(wayDataTable => Cat(wayDataTable.read(index, ren).reverse))
 
   val wayHitState   = readTag.zipWithIndex.map{ case (wayTag, wayIndex) => vTable(wayIndex)(indexReg) & (wayTag === tagReg) }
-  val hitData       = readData.zipWithIndex.map{ case (wayData, wayIndex) => wayData & wayHitState(wayIndex).asUInt }.reduce((x, y) => x | y)
+  val hitData       = readData.zipWithIndex.map{ case (wayData, wayIndex) => wayData & Fill(wayData.getWidth, wayHitState(wayIndex)) }.reduce((x, y) => x | y)
   val hit           = wayHitState.reduce((x, y) => x | y)
 
   val refillData    = Reg(Vec(BLOCK_SIZE / wordBtyes, UInt(XLEN.W)))
