@@ -11,6 +11,7 @@ import chisel3.util.Cat
 import chisel3.util.MuxCase
 import bus.Axi4Bundle
 import bus.Axi4ReadAddrBundle
+import chisel3.util.Counter
 
 class IcacheRequest extends Bundle {
   val addr    = UInt(ADDR_WIDTH.W)
@@ -47,8 +48,6 @@ class Icache extends Module {
   val tagTable      = Seq.fill(NWAY)(SyncReadMem(NSET, UInt(tagWidth.W)))
   val dataTable     = Seq.fill(NWAY, nWord)(SyncReadMem(NSET, Vec(wordBtyes, UInt(8.W))))
 
-  val addrReg       = Reg(UInt(ADDR_WIDTH.W))
-
   val tag           = io.request.bits.addr(XLEN - 1, XLEN - tagWidth)
   val index         = io.request.bits.addr(indexWidth + offsetWidth - 1, offsetWidth)
   val offset        = io.request.bits.addr(offsetWidth - 1, log2Up(wordBtyes))
@@ -80,6 +79,12 @@ class Icache extends Module {
     log2Up(wordBtyes).U
   )
 
+  val (readCnt, readWrap) = Counter(io.axi.r.fire, BLOCK_SIZE / wordBtyes)
+  io.axi.r.ready := stateReg === sRefill
+  when (io.axi.r.fire) {
+    refillData(readCnt) := io.axi.r.bits.data
+  }
+
   nextState := sIdle
   switch(stateReg) {
     is (sIdle) {
@@ -97,11 +102,7 @@ class Icache extends Module {
     }
     is (sRefill) {
       val lastData = io.axi.r.valid & io.axi.r.bits.last
-      nextState := MuxCase(sIdle, Seq(
-        (lastData & io.request.valid)       -> sRead,
-        (lastData & !io.request.valid)      -> sIdle,
-        !lastData                           -> sRefill
-      ))
+      nextState := Mux(lastData, sIdle, sRefill)
     }
   }
 }
