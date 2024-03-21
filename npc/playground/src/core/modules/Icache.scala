@@ -51,18 +51,26 @@ class Icache extends Module {
   val tag           = io.request.bits.addr(XLEN - 1, XLEN - tagWidth)
   val index         = io.request.bits.addr(indexWidth + offsetWidth - 1, offsetWidth)
   val offset        = io.request.bits.addr(offsetWidth - 1, log2Up(wordBtyes))
+  val tagReg        = RegNext(tag)
+  val indexReg      = RegNext(index)
+  val offsetReg     = RegNext(offset)
 
   val ren           = nextState === sRead
 
   val readTag       = tagTable.map(_.read(index, ren))
   val readData      = dataTable.map(dataMem => Cat(dataMem.map(_.read(index, ren).asUInt).reverse))
 
-  val wayHitState   = readTag.zipWithIndex.map{ case (wayTag, i) => vTable(i)(index) & (wayTag === tag) }
+  val wayHitState   = readTag.zipWithIndex.map{ case (wayTag, i) => vTable(i)(indexReg) & (wayTag === tagReg) }
   val hit           = wayHitState.reduce((x, y) => x | y)
   val hitData       = readData.zipWithIndex.map{ case (dataLine, i) => dataLine & wayHitState(i).asUInt }.reduce((x, y) => x | y)
 
-  io.response.bits.data := VecInit.tabulate(nWord){ i => hitData((i + 1) * XLEN - 1, i * XLEN) }(offset)
-  io.response.valid     := (stateReg === sRead) && hit
+  val refillData    = Reg(Vec(BLOCK_SIZE / wordBtyes, UInt(XLEN.W)))
+  val refillFin     = RegNext((stateReg === sRefill) && (nextState =/= sRefill))
+
+  val outData       = Mux(refillFin, refillData.asUInt, hitData)
+
+  io.response.bits.data := VecInit.tabulate(nWord){ i => outData((i + 1) * XLEN - 1, i * XLEN) }(offsetReg)
+  io.response.valid     := ((stateReg === sRead) && hit) || refillFin
 
   nextState := sIdle
   switch(stateReg) {
