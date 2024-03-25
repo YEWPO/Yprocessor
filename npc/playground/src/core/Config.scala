@@ -6,6 +6,8 @@ object CoreConfig {
   val GPR_NUM       = 32
   val GPR_LEN       = 5
   val CSR_LEN       = 12
+
+  val START_ADDR    = 0x80000000L
 }
 
 object CacheConfig {
