@@ -25,7 +25,7 @@ class CacheResponse extends Bundle {
 }
 
 object CacheState extends ChiselEnum {
-  val sIdle, sRead, sMiss, sRefill = Value
+  val sIdle, sRead, sMiss, sRefilling, sRefilled = Value
 }
 
 class Cache extends Module {
@@ -74,17 +74,16 @@ class Cache extends Module {
   val hit           = wayHitState.reduce((x, y) => x | y)
 
   val refillData    = Reg(Vec(BLOCK_SIZE / wordBtyes, UInt(XLEN.W)))
-  val refillFin     = RegNext(readWrap)
-  when (refillFin) {
+  when (stateReg === sRefilled) {
     vTable(randNum) := vTable(randNum).bitSet(indexReg, true.B)
     tagTable.zipWithIndex.foreach{ case (wayTag, wayIndex) => wayTag.write(indexReg, VecInit(tagReg), Seq(randNum === wayIndex.U)) }
     dataTable.zipWithIndex.foreach{ case (wayDataTable, wayIndex) => wayDataTable.write(indexReg, refillData, Seq.fill(nWord)(randNum === wayIndex.U)) }
   }
 
-  val outData       = Mux(refillFin, refillData.asUInt, hitData)
+  val outData       = Mux(stateReg === sRefilled, refillData.asUInt, hitData)
 
   io.response.bits.data := VecInit.tabulate(nWord){ i => outData((i + 1) * XLEN - 1, i * XLEN) }(offsetReg)
-  io.response.valid     := ((stateReg === sRead) && hit) || refillFin
+  io.response.valid     := ((stateReg === sRead) && hit) || (stateReg === sRefilled)
 
   io.axi.ar.valid := stateReg === sMiss
   io.axi.ar.bits  := Axi4ReadAddrBundle(
@@ -93,7 +92,7 @@ class Cache extends Module {
     log2Up(wordBtyes).U
   )
 
-  io.axi.r.ready := stateReg === sRefill
+  io.axi.r.ready := stateReg === sRefilling
   when (io.axi.r.fire) {
     refillData(readCnt) := io.axi.r.bits.data
   }
@@ -111,10 +110,13 @@ class Cache extends Module {
       ))
     }
     is (sMiss) {
-      nextState := Mux(io.axi.ar.fire, sRefill, sMiss)
+      nextState := Mux(io.axi.ar.fire, sRefilling, sMiss)
     }
-    is (sRefill) {
-      nextState := Mux(refillFin, sIdle, sRefill)
+    is (sRefilling) {
+      nextState := Mux(readWrap, sRefilled, sRefilling)
+    }
+    is (sRefilled) {
+      nextState := sIdle
     }
   }
 }
