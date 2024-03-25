@@ -81,9 +81,14 @@ class Cache extends Module {
   }
 
   val outData       = Mux(stateReg === sRefilled, refillData.asUInt, hitData)
+  val responseValid = ((stateReg === sRead) && hit) || (stateReg === sRefilled)
+
+  val abortReg      = Reg(Bool())
+  val abort         = io.abort && (stateReg =/= sIdle)
+  abortReg          := Mux(responseValid, false.B, abortReg || abort)
 
   io.response.bits.data := VecInit.tabulate(nWord){ i => outData((i + 1) * XLEN - 1, i * XLEN) }(offsetReg)
-  io.response.valid     := ((stateReg === sRead) && hit) || (stateReg === sRefilled)
+  io.response.valid     := responseValid && (abort || abortReg)
 
   io.axi.ar.valid := stateReg === sMiss
   io.axi.ar.bits  := Axi4ReadAddrBundle(
