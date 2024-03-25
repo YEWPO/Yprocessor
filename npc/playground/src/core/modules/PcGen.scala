@@ -11,7 +11,7 @@ class SnpcGen extends Module {
     val snpc      = Output(UInt(XLEN.W))
   })
 
-  io.snpc := io.pc + Mux(io.instLen.andR, 4.U, 2.U)
+  io.snpc := io.pc + Mux(io.instLen.andR, 4.U, 0.U)
 }
 
 class PcGen extends Module {
