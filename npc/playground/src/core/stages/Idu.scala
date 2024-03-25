@@ -29,6 +29,8 @@ class Idu extends Module {
       val lsuOp       = UInt(lsuOpLen.W)
       val kill        = Bool()
       val invalid     = Bool()
+      val pc          = UInt(XLEN.W)
+      val snpc        = UInt(XLEN.W)
     })
 
     val abort     = Input(Bool())
