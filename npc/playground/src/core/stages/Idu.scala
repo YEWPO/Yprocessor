@@ -58,4 +58,6 @@ class Idu extends Module {
   io.iduOut.bits.lsuOp    := decoder.io.lsuOp
   io.iduOut.bits.kill     := decoder.io.kill
   io.iduOut.bits.invalid  := decoder.io.invalid
+  io.iduOut.bits.pc       := io.iduIn.bits.pc
+  io.iduOut.bits.snpc     := io.iduIn.bits.snpc
 }
