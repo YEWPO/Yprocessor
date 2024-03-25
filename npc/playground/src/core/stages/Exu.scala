@@ -69,6 +69,8 @@ class Exu extends Module {
   preLsu.io.addr          := alu.io.res
   preLsu.io.src           := io.src2
 
+  io.exuIn.ready          := io.exuOut.ready
+
   io.exuOut.valid         := io.exuIn.valid
   io.exuOut.bits.wdata    := preLsu.io.data
   io.exuOut.bits.wstrb    := preLsu.io.strb

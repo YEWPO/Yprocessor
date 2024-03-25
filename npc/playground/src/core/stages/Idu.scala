@@ -44,6 +44,8 @@ class Idu extends Module {
   immGen.io.inst          := io.iduIn.bits.inst
   immGen.io.instType      := decoder.io.instType
 
+  io.iduIn.ready          := io.iduOut.ready
+
   io.iduOut.valid         := io.iduIn.valid && !io.abort
   io.iduOut.bits.rs1      := decoder.io.rs1
   io.iduOut.bits.rs2      := decoder.io.rs2
