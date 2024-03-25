@@ -20,7 +20,7 @@ object InstType {
 
 class ImmGen extends Module {
   val io = IO(new Bundle {
-    val inst      = Input(UInt(XLEN.W))
+    val inst      = Input(UInt(32.W))
     val instType  = Input(UInt(typeWidth.W))
 
     val imm       = Output(UInt(XLEN.W))
