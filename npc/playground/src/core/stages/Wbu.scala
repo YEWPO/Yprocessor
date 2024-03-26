@@ -8,7 +8,7 @@ class Wbu extends Module {
   val io = IO(new Bundle {
     val wbuIn = Flipped(Decoupled(new Bundle {
       val rd        = UInt(5.W)
-      val lsuData   = UInt(XLEN.W)
+      val lsuRes    = UInt(XLEN.W)
     }))
 
     val rd    = Output(UInt(5.W))
@@ -18,5 +18,5 @@ class Wbu extends Module {
   io.wbuIn.ready := true.B
 
   io.rd           := Mux(io.wbuIn.valid, io.wbuIn.bits.rd, 0.U)
-  io.data         := Mux(io.wbuIn.valid, io.wbuIn.bits.lsuData, 0.U)
+  io.data         := Mux(io.wbuIn.valid, io.wbuIn.bits.lsuRes, 0.U)
 }

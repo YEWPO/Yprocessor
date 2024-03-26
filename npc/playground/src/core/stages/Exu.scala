@@ -78,7 +78,7 @@ class Exu extends Module {
 
   io.exuOut.valid         := io.exuIn.valid
   io.exuOut.bits.rd       := Mux(io.exuIn.valid, io.exuIn.bits.rd, 0.U)
-  io.exuOut.bits.exuRes   := Mux(io.exuIn.bits.lsuOp(lsuOpLen - 1), io.exuIn.bits.snpc, alu.io.res)
+  io.exuOut.bits.exuRes   := Mux(io.exuIn.bits.buOp(buOpLen - 1), io.exuIn.bits.snpc, alu.io.res)
   io.exuOut.bits.lsuOp    := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp, 0.U)
   io.exuOut.bits.kill     := Mux(io.exuIn.valid, io.exuIn.bits.kill, false.B)
   io.exuOut.bits.invalid  := Mux(io.exuIn.valid, io.exuIn.bits.invalid, false.B)
