@@ -9,6 +9,7 @@ import LsuOp._
 import core.modules.Alu
 import core.modules.Bu
 import core.modules.PreLsu
+import chisel3.util.Cat
 
 object ExuSrc1 {
   val SRC1  = false.B
@@ -42,9 +43,12 @@ class Exu extends Module {
     val dnpc          = Output(UInt(XLEN.W))
     val control       = Output(Bool())
 
+    val addr         = Output(UInt(XLEN.W))
+    val wdata         = Output(UInt(XLEN.W))
+    val wstrb         = Output(UInt((XLEN / 8).W))
+
     val exuOut = Decoupled(new Bundle {
-      val wdata       = UInt(XLEN.W)
-      val wstrb       = UInt((XLEN / 8).W)
+      val rd          = UInt(5.W)
       val exuRes      = UInt(XLEN.W)
       val lsuOp       = UInt(lsuOpLen.W)
       val kill        = Bool()
@@ -73,13 +77,16 @@ class Exu extends Module {
   io.exuIn.ready          := io.exuOut.ready
 
   io.exuOut.valid         := io.exuIn.valid
-  io.exuOut.bits.wdata    := preLsu.io.data
-  io.exuOut.bits.wstrb    := preLsu.io.strb
+  io.exuOut.bits.rd       := Mux(io.exuIn.valid, io.exuIn.bits.rd, 0.U)
   io.exuOut.bits.exuRes   := Mux(io.exuIn.bits.lsuOp(lsuOpLen - 1), io.exuIn.bits.snpc, alu.io.res)
-  io.exuOut.bits.lsuOp    := io.exuIn.bits.lsuOp
-  io.exuOut.bits.kill     := io.exuIn.bits.kill
-  io.exuOut.bits.invalid  := io.exuIn.bits.invalid
-  io.exuOut.bits.pc       := io.exuIn.bits.pc
+  io.exuOut.bits.lsuOp    := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp, 0.U)
+  io.exuOut.bits.kill     := Mux(io.exuIn.valid, io.exuIn.bits.kill, false.B)
+  io.exuOut.bits.invalid  := Mux(io.exuIn.valid, io.exuIn.bits.invalid, false.B)
+  io.exuOut.bits.pc       := Mux(io.exuIn.valid, io.exuIn.bits.pc, 0.U)
+
+  io.addr                 := Cat(alu.io.res(XLEN - 1, 3), 0.U(3.W))
+  io.wdata                := preLsu.io.data
+  io.wstrb                := preLsu.io.strb
 
   io.dnpc                 := bu.io.dnpc
   io.control              := bu.io.control
