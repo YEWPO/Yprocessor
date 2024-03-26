@@ -57,16 +57,16 @@ class Exu extends Module {
   val bu                  = Module(new Bu)
   val preLsu              = Module(new PreLsu)
 
-  alu.io.aluOp            := io.exuIn.bits.aluOp
+  alu.io.aluOp            := Mux(io.exuIn.valid, io.exuIn.bits.aluOp, 0.U)
   alu.io.src1             := Mux(io.exuIn.bits.src1Sel, io.exuIn.bits.pc, io.src1)
   alu.io.src2             := Mux(io.exuIn.bits.src2Sel, io.src2, io.exuIn.bits.imm)
 
-  bu.io.buOp              := io.exuIn.bits.buOp
+  bu.io.buOp              := Mux(io.exuIn.valid, io.exuIn.bits.buOp, 0.U)
   bu.io.src1              := io.src1
   bu.io.src2              := io.src2
   bu.io.tpc               := alu.io.res
 
-  preLsu.io.lsuOp         := io.exuIn.bits.lsuOp
+  preLsu.io.lsuOp         := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp, 0.U)
   preLsu.io.addr          := alu.io.res
   preLsu.io.src           := io.src2
 
