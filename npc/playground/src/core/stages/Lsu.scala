@@ -5,13 +5,19 @@ import chisel3.util.Decoupled
 import core.CoreConfig._
 import LsuOp._
 import chisel3.util.Valid
+import bus.Axi4Bundle
+import core.modules.Cache
+import chisel3.util.switch
+import chisel3.util.is
+import memory.MemoryConfig._
+import chisel3.util.Counter
 
 object LsuOp {
   val lsuOpLen = 5
 
   val byteLen = 8
-  val halfLen =  2 * byteLen
-  val wordLen =  2 * halfLen
+  val halfLen = 2 * byteLen
+  val wordLen = 2 * halfLen
 
   val W_TAG     = 4
   val R_TAG     = 3
@@ -28,6 +34,65 @@ object LsuOp {
   val SH    = "b1_0_001".U
   val SW    = "b1_0_010".U
   val SD    = "b1_0_011".U
+}
+
+object LsuArbiterState extends ChiselEnum {
+  val sIdle, sReadCache, sReadDevice, sWrite = Value
+}
+
+class LsArbiter extends Module {
+  val io = IO(new Bundle {
+    val lsInfo = Flipped(Valid(new Bundle {
+      val addr         = Input(UInt(XLEN.W))
+      val wdata        = Input(UInt(XLEN.W))
+      val wstrb        = Input(UInt((XLEN / 8).W))
+    }))
+
+    val axi     = new Axi4Bundle
+
+    val data    = Output(UInt(XLEN.W))
+    val finish  = Output(Bool())
+  })
+
+  import LsuArbiterState._
+  val stateReg      = RegInit(sIdle)
+  val nextState     = Wire(LsuArbiterState())
+  stateReg := nextState
+
+  val dcache        = Module(new Cache)
+
+  val isRead        = io.lsInfo.valid && !io.lsInfo.bits.wstrb.orR
+  val isWrite       = io.lsInfo.valid && io.lsInfo.bits.wstrb.orR
+  val memoryOp      = (io.lsInfo.bits.addr >= MEM_ADDR_BASE.U) && (io.lsInfo.bits.addr < MEM_ADDR_MAX.U)
+
+  val isReadCache   = isRead && memoryOp
+  val isReadDevice  = isRead && !memoryOp
+
+  val (readCount, readDone) = Counter(io.axi.r.fire, 1)
+
+  switch (stateReg) {
+    is (sIdle) {
+      when (isReadCache) {
+        nextState := sReadCache
+      } .elsewhen (isReadDevice) {
+        nextState := sReadDevice
+      } .elsewhen (isWrite) {
+        nextState := sWrite
+      }
+    }
+
+    is (sReadCache) {
+      nextState := Mux(dcache.io.response.valid, sIdle, sReadCache)
+    }
+
+    is (sReadDevice) {
+      nextState := Mux(readDone, sIdle, sReadDevice)
+    }
+
+    is (sWrite) {
+      nextState := Mux(io.axi.b.fire, sIdle, sWrite)
+    }
+  }
 }
 
 class Lsu extends Module {
