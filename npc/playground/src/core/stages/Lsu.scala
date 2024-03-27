@@ -77,17 +77,20 @@ class LsArbiter extends Module {
   dcache.io.request.valid       := nextState === sReadCache
   dcache.io.request.bits.addr   := io.lsInfo.bits.addr
   dcache.io.abort               := false.B
+  dcache.io.axi.ar.ready        := io.axi.ar.ready
+  dcache.io.axi.r.valid         := Mux(isReadCache, io.axi.r.valid, false.B)
+  dcache.io.axi.r.bits          := io.axi.r.bits
 
-  io.axi.ar.valid               := RegNext(nextState === sReadInit)
-  io.axi.ar.bits                := RegNext(Axi4ReadAddrBundle(
+  io.axi.ar.valid               := Mux(isReadCache, dcache.io.axi.ar.valid, RegNext(nextState === sReadInit))
+  io.axi.ar.bits                := Mux(isReadCache, dcache.io.axi.ar.bits, RegNext(Axi4ReadAddrBundle(
     io.lsInfo.bits.addr,
     0.U,
     log2Up(XLEN / 8).U
-  ))
+  )))
 
   val readData  = Reg(UInt(XLEN.W))
   val readFin   = RegNext(readDone)
-  io.axi.r.ready                := RegNext(nextState === sReadData)
+  io.axi.r.ready                := Mux(isReadCache, dcache.io.axi.r.ready, RegNext(nextState === sReadData))
   when (io.axi.r.fire) {
     readData := io.axi.r.bits.data
   }
