@@ -10,6 +10,7 @@ import core.modules.Alu
 import core.modules.Bu
 import core.modules.PreLsu
 import chisel3.util.Cat
+import chisel3.util.Valid
 
 object ExuSrc1 {
   val SRC1  = false.B
@@ -43,9 +44,11 @@ class Exu extends Module {
     val dnpc          = Output(UInt(XLEN.W))
     val control       = Output(Bool())
 
-    val addr         = Output(UInt(XLEN.W))
-    val wdata         = Output(UInt(XLEN.W))
-    val wstrb         = Output(UInt((XLEN / 8).W))
+    val lsInfo = Valid(new Bundle {
+      val addr         = UInt(XLEN.W)
+      val wdata        = UInt(XLEN.W)
+      val wstrb        = UInt((XLEN / 8).W)
+    })
 
     val exuOut = Decoupled(new Bundle {
       val rd          = UInt(5.W)
@@ -84,9 +87,10 @@ class Exu extends Module {
   io.exuOut.bits.invalid  := Mux(io.exuIn.valid, io.exuIn.bits.invalid, false.B)
   io.exuOut.bits.pc       := Mux(io.exuIn.valid, io.exuIn.bits.pc, 0.U)
 
-  io.addr                 := Cat(alu.io.res(XLEN - 1, 3), 0.U(3.W))
-  io.wdata                := preLsu.io.data
-  io.wstrb                := preLsu.io.strb
+  io.lsInfo.valid         := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp(R_TAG) || io.exuIn.bits.lsuOp(W_TAG), false.B)
+  io.lsInfo.bits.addr     := Cat(alu.io.res(XLEN - 1, 3), 0.U(3.W))
+  io.lsInfo.bits.wdata    := preLsu.io.data
+  io.lsInfo.bits.wstrb    := preLsu.io.strb
 
   io.dnpc                 := bu.io.dnpc
   io.control              := bu.io.control
