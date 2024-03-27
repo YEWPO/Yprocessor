@@ -79,16 +79,17 @@ class LsArbiter extends Module {
   dcache.io.abort               := false.B
 
   io.axi.ar.valid               := RegNext(nextState === sReadInit)
-  io.axi.ar.bits                := Axi4ReadAddrBundle(
+  io.axi.ar.bits                := RegNext(Axi4ReadAddrBundle(
     io.lsInfo.bits.addr,
     0.U,
     log2Up(XLEN / 8).U
-  )
+  ))
 
-  val readData = Reg(UInt(XLEN.W))
+  val readData  = Reg(UInt(XLEN.W))
+  val readFin   = RegNext(readDone)
   io.axi.r.ready                := RegNext(nextState === sReadData)
   when (io.axi.r.fire) {
-    readData := io.axi.r.bits.data // TODO
+    readData := io.axi.r.bits.data
   }
 
   io.axi.aw.valid               := RegNext(nextState === sWriteInit)
