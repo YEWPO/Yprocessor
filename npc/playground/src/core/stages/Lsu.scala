@@ -71,6 +71,11 @@ class LsArbiter extends Module {
   val (readCount, readDone)   = Counter(io.axi.r.fire, 1)
   val (writeCount, writeDone) = Counter(io.axi.w.fire, 1)
 
+  dcache.io.request.valid       := nextState === sReadCache
+  dcache.io.request.bits.addr   := io.lsInfo.bits.addr
+  dcache.io.abort               := false.B
+
+  nextState := sIdle
   switch (stateReg) {
     is (sIdle) {
       when (isReadCache) {
