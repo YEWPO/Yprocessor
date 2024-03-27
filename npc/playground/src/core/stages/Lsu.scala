@@ -186,7 +186,7 @@ class Lsu extends Module {
   lsArbiter.io.lsInfo := io.lsInfo
 
   val lsuRes          = Mux(io.lsuIn.bits.lsuOp(R_TAG), lsArbiter.io.data, io.lsuIn.bits.exuRes)
-  val lsuFin          = !io.lsuIn.bits.lsuOp(R_TAG) || !io.lsuIn.bits.lsuOp(W_TAG) || lsArbiter.io.finish
+  val lsuFin          = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) || lsArbiter.io.finish
 
   io.axi              <> lsArbiter.io.axi
 
