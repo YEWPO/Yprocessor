@@ -12,8 +12,8 @@ object LsuOp {
   val halfLen =  2 * byteLen
   val wordLen =  2 * halfLen
 
-  val W     = 4
-  val R     = 3
+  val W_TAG     = 4
+  val R_TAG     = 3
 
   val LB    = "b0_1_000".U
   val LH    = "b0_1_001".U
@@ -53,7 +53,7 @@ class Lsu extends Module {
     val data          = Output(UInt(XLEN.W))
   })
 
-  val lsuRes          = Mux(io.lsuIn.bits.lsuOp(R), 0.U, io.lsuIn.bits.exuRes)
+  val lsuRes          = Mux(io.lsuIn.bits.lsuOp(R_TAG), 0.U, io.lsuIn.bits.exuRes)
 
   io.rd               := io.lsuIn.bits.rd
   io.data             := lsuRes
