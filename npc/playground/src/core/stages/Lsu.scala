@@ -39,7 +39,7 @@ object LsuOp {
   val SD    = "b1_0_011".U
 }
 
-object LsuArbiterState extends ChiselEnum {
+object LsArbiterState extends ChiselEnum {
   val sIdle, sReadCache, sReadInit, sReadData, sWriteInit, sWriteData, sWriteFin = Value
 }
 
@@ -57,9 +57,9 @@ class LsArbiter extends Module {
     val finish  = Output(Bool())
   })
 
-  import LsuArbiterState._
+  import LsArbiterState._
   val stateReg      = RegInit(sIdle)
-  val nextState     = Wire(LsuArbiterState())
+  val nextState     = Wire(LsArbiterState())
   stateReg := nextState
 
   val dcache        = Module(new Cache)
