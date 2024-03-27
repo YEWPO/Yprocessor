@@ -46,9 +46,9 @@ object LsuArbiterState extends ChiselEnum {
 class LsArbiter extends Module {
   val io = IO(new Bundle {
     val lsInfo = Flipped(Valid(new Bundle {
-      val addr         = Input(UInt(XLEN.W))
-      val wdata        = Input(UInt(XLEN.W))
-      val wstrb        = Input(UInt((XLEN / 8).W))
+      val addr         = UInt(XLEN.W)
+      val wdata        = UInt(XLEN.W)
+      val wstrb        = UInt((XLEN / 8).W)
     }))
 
     val axi     = new Axi4Bundle
@@ -74,7 +74,7 @@ class LsArbiter extends Module {
   val (readCount, readDone)   = Counter(io.axi.r.fire, 1)
   val (writeCount, writeDone) = Counter(io.axi.w.fire, 1)
 
-  dcache.io.request.valid       := nextState === sReadCache
+  dcache.io.request.valid       := isReadCache
   dcache.io.request.bits.addr   := io.lsInfo.bits.addr
   dcache.io.abort               := false.B
   dcache.io.axi.ar.ready        := io.axi.ar.ready
@@ -112,7 +112,7 @@ class LsArbiter extends Module {
   val writeFin = RegNext(io.axi.b.fire)
   io.axi.b.ready                := RegNext(nextState === sWriteFin)
 
-  io.data   := Mux(dcache.io.response.valid, dcache.io.response.bits.data, readData)
+  io.data   := Mux(isReadCache, dcache.io.response.bits.data, readData)
   io.finish := dcache.io.response.valid || readFin || writeFin
 
   nextState := sIdle
@@ -165,9 +165,9 @@ class Lsu extends Module {
     }))
 
     val lsInfo = Flipped(Valid(new Bundle {
-      val addr         = Input(UInt(XLEN.W))
-      val wdata        = Input(UInt(XLEN.W))
-      val wstrb        = Input(UInt((XLEN / 8).W))
+      val addr         = UInt(XLEN.W)
+      val wdata        = UInt(XLEN.W)
+      val wstrb        = UInt((XLEN / 8).W)
     }))
 
     val lsuOut = Decoupled(new Bundle {
