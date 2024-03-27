@@ -172,18 +172,27 @@ class Lsu extends Module {
       val data        = UInt(XLEN.W)
     })
 
+    val axi           = new Axi4Bundle
+
     val rd            = Output(UInt(5.W))
     val data          = Output(UInt(XLEN.W))
   })
 
-  val lsuRes          = Mux(io.lsuIn.bits.lsuOp(R_TAG), 0.U, io.lsuIn.bits.exuRes)
+  val lsArbiter       = Module(new LsArbiter)
+
+  lsArbiter.io.lsInfo := io.lsInfo
+
+  val lsuRes          = Mux(io.lsuIn.bits.lsuOp(R_TAG), lsArbiter.io.data, io.lsuIn.bits.exuRes)
+  val lsuFin          = !io.lsuIn.bits.lsuOp(R_TAG) || !io.lsuIn.bits.lsuOp(W_TAG) || lsArbiter.io.finish
+
+  io.axi              <> lsArbiter.io.axi
 
   io.rd               := io.lsuIn.bits.rd
   io.data             := lsuRes
 
-  io.lsuIn.ready      := io.lsuOut.valid
+  io.lsuIn.ready      := io.lsuOut.ready && lsuFin
 
-  io.lsuOut.valid     := io.lsuIn.valid && false.B /** TOOD */
+  io.lsuOut.valid     := io.lsuIn.valid && lsuFin
   io.lsuOut.bits.rd   := io.lsuIn.bits.rd
   io.lsuOut.bits.data := lsuRes
 }
