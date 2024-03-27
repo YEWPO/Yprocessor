@@ -88,7 +88,7 @@ class Cache extends Module {
   abortReg          := Mux(responseValid, false.B, abortReg || abort)
 
   io.response.bits.data := VecInit.tabulate(nWord){ i => outData((i + 1) * XLEN - 1, i * XLEN) }(offsetReg)
-  io.response.valid     := responseValid && (abort || abortReg)
+  io.response.valid     := responseValid && !abort && !abortReg
 
   io.axi.ar.valid := stateReg === sMiss
   io.axi.ar.bits  := Axi4ReadAddrBundle(
