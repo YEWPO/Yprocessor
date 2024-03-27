@@ -37,7 +37,7 @@ object LsuOp {
 }
 
 object LsuArbiterState extends ChiselEnum {
-  val sIdle, sReadCache, sReadDevice, sWrite = Value
+  val sIdle, sReadCache, sReadInit, sReadData, sWriteInit, sWriteData, sWriteFin = Value
 }
 
 class LsArbiter extends Module {
@@ -68,16 +68,17 @@ class LsArbiter extends Module {
   val isReadCache   = isRead && memoryOp
   val isReadDevice  = isRead && !memoryOp
 
-  val (readCount, readDone) = Counter(io.axi.r.fire, 1)
+  val (readCount, readDone)   = Counter(io.axi.r.fire, 1)
+  val (writeCount, writeDone) = Counter(io.axi.w.fire, 1)
 
   switch (stateReg) {
     is (sIdle) {
       when (isReadCache) {
         nextState := sReadCache
       } .elsewhen (isReadDevice) {
-        nextState := sReadDevice
+        nextState := sReadInit
       } .elsewhen (isWrite) {
-        nextState := sWrite
+        nextState := sWriteInit
       }
     }
 
@@ -85,12 +86,24 @@ class LsArbiter extends Module {
       nextState := Mux(dcache.io.response.valid, sIdle, sReadCache)
     }
 
-    is (sReadDevice) {
-      nextState := Mux(readDone, sIdle, sReadDevice)
+    is (sReadInit) {
+      nextState := Mux(io.axi.ar.fire, sReadData, sReadInit)
     }
 
-    is (sWrite) {
-      nextState := Mux(io.axi.b.fire, sIdle, sWrite)
+    is(sReadData) {
+      nextState := Mux(readDone, sIdle, sReadData)
+    }
+
+    is (sWriteInit) {
+      nextState := Mux(io.axi.aw.fire, sWriteData, sWriteInit)
+    }
+
+    is (sWriteData) {
+      nextState := Mux(writeDone, sWriteFin, sWriteData)
+    }
+
+    is (sWriteFin) {
+      nextState := Mux(io.axi.b.fire, sIdle, sWriteFin)
     }
   }
 }
