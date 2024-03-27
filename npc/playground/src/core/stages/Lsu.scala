@@ -13,6 +13,7 @@ import memory.MemoryConfig._
 import chisel3.util.Counter
 import bus.Axi4ReadAddrBundle
 import chisel3.util.log2Up
+import bus.Axi4WriteDataBundle
 
 object LsuOp {
   val lsuOpLen = 5
@@ -89,6 +90,23 @@ class LsArbiter extends Module {
   when (io.axi.r.fire) {
     readData := io.axi.r.bits.data // TODO
   }
+
+  io.axi.aw.valid               := RegNext(nextState === sWriteInit)
+  io.axi.aw.bits                := RegNext(Axi4ReadAddrBundle(
+    io.lsInfo.bits.addr,
+    0.U,
+    log2Up(XLEN / 8).U
+  ))
+
+  io.axi.w.valid                := RegNext(nextState === sWriteData)
+  io.axi.w.bits                 := RegNext(Axi4WriteDataBundle(
+    io.lsInfo.bits.wdata,
+    io.lsInfo.bits.wstrb,
+    true.B
+  ))
+
+  val writeFin = RegNext(io.axi.b.fire)
+  io.axi.b.ready                := RegNext(nextState === sWriteFin)
 
   nextState := sIdle
   switch (stateReg) {
