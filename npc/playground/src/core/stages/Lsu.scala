@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util.Decoupled
 import core.CoreConfig._
 import LsuOp._
+import chisel3.util.Valid
 
 object LsuOp {
   val lsuOpLen = 5
@@ -40,9 +41,11 @@ class Lsu extends Module {
       val pc          = UInt(XLEN.W)
     }))
 
-    val addr         = Input(UInt(XLEN.W))
-    val wdata        = Input(UInt(XLEN.W))
-    val wstrb        = Input(UInt((XLEN / 8).W))
+    val lsInfo = Flipped(Valid(new Bundle {
+      val addr         = Input(UInt(XLEN.W))
+      val wdata        = Input(UInt(XLEN.W))
+      val wstrb        = Input(UInt((XLEN / 8).W))
+    }))
 
     val lsuOut = Decoupled(new Bundle {
       val rd          = UInt(5.W)
