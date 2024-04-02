@@ -8,9 +8,22 @@ import bus.Axi4ReadDataBundle
 import chisel3.util.switch
 import chisel3.util.is
 import chisel3.util.Counter
+import chisel3.util.HasBlackBoxPath
+import chisel3.util.Cat
 
 object SramReadState extends ChiselEnum {
   val rWait, rRead = Value
+}
+
+class SramReadBlackBox extends BlackBox with HasBlackBoxPath {
+  val io = IO(new Bundle {
+    val clk = Input(Clock())
+    val en  = Input(Bool())
+    val addr = Input(UInt(32.W))
+    val data = Output(UInt(32.W))
+  })
+
+  addPath("src/memory/SramRead.v")
 }
 
 class SramRead extends Module {
@@ -26,13 +39,18 @@ class SramRead extends Module {
 
   val (readCount, readDone) = Counter(r.fire, 2)
 
+  val sramRead = Module(new SramReadBlackBox)
+  sramRead.io.clk := clock
+  sramRead.io.en  := stateReg === rRead
+  sramRead.io.addr := arReg.addr + Cat(readCount, 0.U(3.W))
+
   ar.ready      := nextState === rWait
 
-  r.valid       := RegNext(nextState === rRead)
-  r.bits        := RegNext(Axi4ReadDataBundle(
-    data = 0.U,
+  r.valid       := stateReg === rRead
+  r.bits        := Axi4ReadDataBundle(
+    data = sramRead.io.data,
     last = readCount === 1.U
-  ))
+  )
 
   nextState := rWait
   switch (stateReg) {
