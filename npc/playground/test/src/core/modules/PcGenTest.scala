@@ -9,7 +9,7 @@ trait PcGenBehavior {
   this: AnyFlatSpec =>
 
   def testPcGen(pc: Long, instLen: Int, control: Boolean, dnpc: Long): Unit = {
-    val snpc = if (instLen == 3) pc + 4 else pc + 2
+    val snpc = if (instLen == 3) pc + 4 else pc
     val npc = if (control) dnpc else snpc
 
     it should s"pc 0x${pc.toHexString} $instLen, snpc = 0x${snpc.toHexString} npc = 0x${dnpc.toHexString}" in {
