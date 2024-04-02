@@ -48,7 +48,6 @@ class Idu extends Module {
   immGen.io.instType      := decoder.io.instType
 
   io.iduIn.ready          := io.iduOut.ready
-  io.iduGpr.ready         := io.iduOut.ready
 
   io.iduGpr.valid         := io.iduIn.valid && !io.abort
   io.iduGpr.bits.rs1      := decoder.io.rs1

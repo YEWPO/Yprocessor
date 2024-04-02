@@ -49,12 +49,19 @@ class Core extends Module {
 
   val axiArbiter = Module(new AxiArbiter)
 
-  val ifu2idu = Module(new PipeReg(ifu.io.ifuOut))
-  val idu2exu = Module(new PipeReg(idu.io.iduOut))
-  val exu2lsu = Module(new PipeReg(exu.io.exuOut))
-  val lsu2wbu = Module(new PipeReg(lsu.io.lsuOut))
+  val ifu2idu = Module(new PipeReg(ifu.io.ifuOut.bits.cloneType))
+  val idu2exu = Module(new PipeReg(idu.io.iduOut.bits.cloneType))
+  val exu2lsu = Module(new PipeReg(exu.io.exuOut.bits.cloneType))
+  val lsu2wbu = Module(new PipeReg(lsu.io.lsuOut.bits.cloneType))
 
-  val idu2gpr = Module(new PipeReg(idu.io.iduGpr))
+  val idu2gpr = Module(new PipeReg(idu.io.iduGpr.bits.cloneType))
+
+  ifu2idu.io.in <> ifu.io.ifuOut
+  idu2exu.io.in <> idu.io.iduOut
+  exu2lsu.io.in <> exu.io.exuOut
+  lsu2wbu.io.in <> lsu.io.lsuOut
+
+  idu2gpr.io.in <> idu.io.iduGpr
 
   idu.io.iduIn <> ifu2idu.io.out
   exu.io.exuIn <> idu2exu.io.out
@@ -65,6 +72,7 @@ class Core extends Module {
   gpr.io.rdLsu      := lsu.io.rd
   gpr.io.rdWbu      := wbu.io.rd
   gpr.io.dataLsu    := lsu.io.data
+  gpr.io.dataWbu    := wbu.io.data
 
   ifu.io.control    := exu.io.control
   ifu.io.dnpc       := exu.io.dnpc

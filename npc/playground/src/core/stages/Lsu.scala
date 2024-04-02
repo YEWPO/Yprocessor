@@ -172,30 +172,30 @@ class Lsu extends Module {
 
     val lsuOut = Decoupled(new Bundle {
       val rd          = UInt(GPR_LEN.W)
-      val data        = UInt(XLEN.W)
+      val lsuRes      = UInt(XLEN.W)
     })
 
-    val axi           = new Axi4Bundle
+    val axi               = new Axi4Bundle
 
-    val rd            = Output(UInt(GPR_LEN.W))
-    val data          = Output(UInt(XLEN.W))
+    val rd                = Output(UInt(GPR_LEN.W))
+    val data              = Output(UInt(XLEN.W))
   })
 
-  val lsArbiter       = Module(new LsArbiter)
+  val lsArbiter           = Module(new LsArbiter)
 
-  lsArbiter.io.lsInfo := io.lsInfo
+  lsArbiter.io.lsInfo     := io.lsInfo
 
-  val lsuRes          = Mux(io.lsuIn.bits.lsuOp(R_TAG), lsArbiter.io.data, io.lsuIn.bits.exuRes)
-  val lsuFin          = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) || lsArbiter.io.finish
+  val lsuRes              = Mux(io.lsuIn.bits.lsuOp(R_TAG), lsArbiter.io.data, io.lsuIn.bits.exuRes)
+  val lsuFin              = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) || lsArbiter.io.finish
 
-  io.axi              <> lsArbiter.io.axi
+  io.axi                  <> lsArbiter.io.axi
 
-  io.rd               := io.lsuIn.bits.rd
-  io.data             := lsuRes
+  io.rd                   := io.lsuIn.bits.rd
+  io.data                 := lsuRes
 
-  io.lsuIn.ready      := io.lsuOut.ready && lsuFin
+  io.lsuIn.ready          := io.lsuOut.ready && lsuFin
 
-  io.lsuOut.valid     := io.lsuIn.valid && lsuFin
-  io.lsuOut.bits.rd   := io.lsuIn.bits.rd
-  io.lsuOut.bits.data := lsuRes
+  io.lsuOut.valid         := io.lsuIn.valid && lsuFin
+  io.lsuOut.bits.rd       := io.lsuIn.bits.rd
+  io.lsuOut.bits.lsuRes   := lsuRes
 }
