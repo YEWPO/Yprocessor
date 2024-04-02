@@ -1,12 +1,10 @@
 import chisel3._
+import core.Core
+import memory.Sram
 
 class Top extends Module {
-  val io = IO(new Bundle {
-    val a = Input(Bool())
-    val b = Input(Bool())
+  val core    = Module(new Core)
+  val sram    = Module(new Sram)
 
-    val c = Output(Bool())
-  })
-
-  io.c := io.a ^ io.b
+  core.axi <> sram.axi
 }

@@ -26,12 +26,12 @@ class SramReadBlackBox extends BlackBox with HasBlackBoxPath {
     val data = Output(UInt(XLEN.W))
   })
 
-  addPath("src/memory/SramRead.v")
+  addPath("playground/src/memory/SramRead.sv")
 }
 
 class SramRead extends Module {
-  val ar = Flipped(Decoupled(new Axi4ReadAddrBundle))
-  val r  = Decoupled(new Axi4ReadDataBundle)
+  val ar = IO(Flipped(Decoupled(new Axi4ReadAddrBundle)))
+  val r  = IO(Decoupled(new Axi4ReadDataBundle))
 
   import SramReadState._
   val stateReg      = RegInit(rWait)
@@ -42,14 +42,14 @@ class SramRead extends Module {
 
   val readDone      = r.fire && r.bits.last
   val readCnt       = RegInit(0.U(8.W))
-  readCnt := Mux(nextState === rWait, 0.U, Mux(r.fire, readCnt + 1.U, readCnt))
+  readCnt := Mux(stateReg === rWait, 0.U, Mux(r.fire, readCnt + 1.U, readCnt))
 
   val sramRead = Module(new SramReadBlackBox)
   sramRead.io.clk := clock
   sramRead.io.en  := stateReg === rRead
   sramRead.io.addr := arReg.addr + Cat(readCnt, 0.U(3.W))
 
-  ar.ready      := nextState === rWait
+  ar.ready      := stateReg === rWait
 
   r.valid       := stateReg === rRead
   r.bits        := Axi4ReadDataBundle(
@@ -82,13 +82,13 @@ class SramWriteBlackBox extends BlackBox with HasBlackBoxPath {
     val strb    = Input(UInt(8.W))
   })
 
-  addPath("src/memory/SramWrite.v")
+  addPath("playground/src/memory/SramWrite.sv")
 }
 
 class SramWrite extends Module {
-  val aw = Flipped(Decoupled(new Axi4WriteAddrBundle))
-  val w  = Flipped(Decoupled(new Axi4WriteDataBundle))
-  val b  = Decoupled(new Axi4WriteRespBundle)
+  val aw = IO(Flipped(Decoupled(new Axi4WriteAddrBundle)))
+  val w  = IO(Flipped(Decoupled(new Axi4WriteDataBundle)))
+  val b  = IO(Decoupled(new Axi4WriteRespBundle))
 
   import SramWriteState._
   val stateReg      = RegInit(wWait)
@@ -100,9 +100,9 @@ class SramWrite extends Module {
 
   val writeDone     = w.fire && w.bits.last
   val writeCnt      = RegInit(0.U(8.W))
-  writeCnt := Mux(nextState === wWait, 0.U, Mux(w.fire, writeCnt + 1.U, writeCnt))
+  writeCnt := Mux(stateReg === wWait, 0.U, Mux(w.fire, writeCnt + 1.U, writeCnt))
 
-  aw.ready         := nextState === wWait
+  aw.ready         := stateReg === wWait
   w.ready          := stateReg === wWrite
   b.valid          := stateReg === wResp
   b.bits           := Axi4WriteRespBundle()
@@ -131,7 +131,7 @@ class SramWrite extends Module {
 }
 
 class Sram extends Module {
-  val axi = new Axi4Bundle
+  val axi = IO(Flipped(new Axi4Bundle))
 
   val read  = Module(new SramRead)
   val write = Module(new SramWrite)

@@ -35,9 +35,7 @@ class PipeReg[T <: Data](gen: T) extends Module {
 }
 
 class Core extends Module {
-  val io = IO(new Bundle {
-    val axi = new Axi4Bundle
-  })
+  val axi = IO(new Axi4Bundle)
 
   val ifu = Module(new Ifu)
   val idu = Module(new Idu)
@@ -85,7 +83,7 @@ class Core extends Module {
 
   lsu.io.lsInfo     <> exu.io.lsInfo
 
-  io.axi            <> axiArbiter.io.axi
+  axi            <> axiArbiter.io.axi
   axiArbiter.io.ifu <> ifu.io.axi
   axiArbiter.io.lsu <> lsu.io.axi
 }
