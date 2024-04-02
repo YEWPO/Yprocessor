@@ -52,6 +52,6 @@ class Gpr extends Module {
   trueGpr(0)  := 0.U(XLEN.W)
 
   io.rsIn.ready := true.B
-  io.src1 := trueGpr(Mux(io.rsIn.valid, io.rsIn.bits.rs1, 0.U(GPR_LEN.W)))
-  io.src2 := trueGpr(Mux(io.rsIn.valid, io.rsIn.bits.rs2, 0.U(GPR_LEN.W)))
+  io.src1 := trueGpr(io.rsIn.bits.rs1)
+  io.src2 := trueGpr(io.rsIn.bits.rs2)
 }
