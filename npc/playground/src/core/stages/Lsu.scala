@@ -156,7 +156,7 @@ class LsArbiter extends Module {
 class Lsu extends Module {
   val io = IO(new Bundle {
     val lsuIn = Flipped(Decoupled(new Bundle {
-      val rd          = UInt(5.W)
+      val rd          = UInt(GPR_LEN.W)
       val exuRes      = UInt(XLEN.W)
       val lsuOp       = UInt(lsuOpLen.W)
       val kill        = Bool()
@@ -171,13 +171,13 @@ class Lsu extends Module {
     }))
 
     val lsuOut = Decoupled(new Bundle {
-      val rd          = UInt(5.W)
+      val rd          = UInt(GPR_LEN.W)
       val data        = UInt(XLEN.W)
     })
 
     val axi           = new Axi4Bundle
 
-    val rd            = Output(UInt(5.W))
+    val rd            = Output(UInt(GPR_LEN.W))
     val data          = Output(UInt(XLEN.W))
   })
 

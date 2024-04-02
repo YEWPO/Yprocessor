@@ -7,11 +7,11 @@ import core.CoreConfig._
 class Wbu extends Module {
   val io = IO(new Bundle {
     val wbuIn = Flipped(Decoupled(new Bundle {
-      val rd        = UInt(5.W)
+      val rd        = UInt(GPR_LEN.W)
       val lsuRes    = UInt(XLEN.W)
     }))
 
-    val rd    = Output(UInt(5.W))
+    val rd    = Output(UInt(GPR_LEN.W))
     val data  = Output(UInt(XLEN.W))
   })
 

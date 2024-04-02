@@ -25,7 +25,7 @@ object ExuSrc2 {
 class Exu extends Module {
   val io = IO(new Bundle {
     val exuIn = Flipped(Decoupled(new Bundle {
-      val rd          = UInt(5.W)
+      val rd          = UInt(GPR_LEN.W)
       val imm         = UInt(XLEN.W)
       val src1Sel     = Bool()
       val src2Sel     = Bool()
@@ -51,7 +51,7 @@ class Exu extends Module {
     })
 
     val exuOut = Decoupled(new Bundle {
-      val rd          = UInt(5.W)
+      val rd          = UInt(GPR_LEN.W)
       val exuRes      = UInt(XLEN.W)
       val lsuOp       = UInt(lsuOpLen.W)
       val kill        = Bool()

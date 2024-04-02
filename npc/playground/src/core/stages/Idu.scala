@@ -18,12 +18,12 @@ class Idu extends Module {
     }))
 
     val iduGpr    = Decoupled(new Bundle {
-      val rs1         = UInt(5.W)
-      val rs2         = UInt(5.W)
+      val rs1         = UInt(GPR_LEN.W)
+      val rs2         = UInt(GPR_LEN.W)
     })
 
     val iduOut    = Decoupled(new Bundle {
-      val rd          = UInt(5.W)
+      val rd          = UInt(GPR_LEN.W)
       val imm         = UInt(XLEN.W)
       val src1Sel     = Bool()
       val src2Sel     = Bool()
