@@ -7,7 +7,6 @@ import bus.Axi4ReadAddrBundle
 import bus.Axi4ReadDataBundle
 import chisel3.util.switch
 import chisel3.util.is
-import chisel3.util.Counter
 import chisel3.util.HasBlackBoxPath
 import chisel3.util.Cat
 import bus.Axi4WriteAddrBundle
@@ -23,8 +22,8 @@ class SramReadBlackBox extends BlackBox with HasBlackBoxPath {
   val io = IO(new Bundle {
     val clk = Input(Clock())
     val en  = Input(Bool())
-    val addr = Input(UInt(32.W))
-    val data = Output(UInt(32.W))
+    val addr = Input(UInt(XLEN.W))
+    val data = Output(UInt(XLEN.W))
   })
 
   addPath("src/memory/SramRead.v")
@@ -41,7 +40,9 @@ class SramRead extends Module {
   val arReg         = Reg(new Axi4ReadAddrBundle)
   arReg := Mux(ar.fire, ar.bits, arReg)
 
-  val (readCnt, readDone) = Counter(r.fire, 2)
+  val readDone      = r.fire && r.bits.last
+  val readCnt       = RegInit(0.U(8.W))
+  readCnt := Mux(nextState === rWait, 0.U, Mux(r.fire, readCnt + 1.U, readCnt))
 
   val sramRead = Module(new SramReadBlackBox)
   sramRead.io.clk := clock

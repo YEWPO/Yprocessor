@@ -1,12 +1,12 @@
 module SramRead(
   input         clk,
   input         en,
-  input         addr,
+  input  [63:0] addr,
   output [63:0] data
 );
 
   import "DPI-C" function void read_mem(
-    input  int addr,
+    input  longint addr,
     output longint data
   );
 
