@@ -10,7 +10,7 @@ module SramRead(
     output longint data
   );
 
-  always@(posedge clk) begin
+  always @(posedge clk) begin
     if(en) begin
       read_mem(addr, data);
     end
