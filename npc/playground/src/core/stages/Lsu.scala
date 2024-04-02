@@ -112,7 +112,7 @@ class LsArbiter extends Module {
   val writeFin = RegNext(io.axi.b.fire)
   io.axi.b.ready                := RegNext(nextState === sWriteFin)
 
-  io.data   := Mux(isReadCache, dcache.io.response.bits.data, readData)
+  io.data   := Mux(dcache.io.response.valid, dcache.io.response.bits.data, readData)
   io.finish := dcache.io.response.valid || readFin || writeFin
 
   nextState := sIdle

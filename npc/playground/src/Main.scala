@@ -1,7 +1,8 @@
 import circt.stage._
+import core.Core
 
 object Main extends App {
-  def top = new Top
+  def top = new Core
 
   val firtoolOptions = Seq(
     FirtoolOption(
