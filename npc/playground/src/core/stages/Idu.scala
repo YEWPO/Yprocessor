@@ -17,9 +17,12 @@ class Idu extends Module {
       val snpc  = UInt(XLEN.W)
     }))
 
-    val iduOut    = Decoupled(new Bundle {
+    val iduGpr    = Decoupled(new Bundle {
       val rs1         = UInt(5.W)
       val rs2         = UInt(5.W)
+    })
+
+    val iduOut    = Decoupled(new Bundle {
       val rd          = UInt(5.W)
       val imm         = UInt(XLEN.W)
       val src1Sel     = Bool()
@@ -45,10 +48,13 @@ class Idu extends Module {
   immGen.io.instType      := decoder.io.instType
 
   io.iduIn.ready          := io.iduOut.ready
+  io.iduGpr.ready         := io.iduOut.ready
+
+  io.iduGpr.valid         := io.iduIn.valid && !io.abort
+  io.iduGpr.bits.rs1      := decoder.io.rs1
+  io.iduGpr.bits.rs2      := decoder.io.rs2
 
   io.iduOut.valid         := io.iduIn.valid && !io.abort
-  io.iduOut.bits.rs1      := decoder.io.rs1
-  io.iduOut.bits.rs2      := decoder.io.rs2
   io.iduOut.bits.rd       := decoder.io.rd
   io.iduOut.bits.imm      := immGen.io.imm
   io.iduOut.bits.src1Sel  := decoder.io.src1Sel
