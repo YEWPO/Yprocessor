@@ -11,6 +11,8 @@ config ISA_riscv
   bool "riscv"
 config ISA_loongarch32r
   bool "loongarch32r"
+config ISA_npc
+  bool "npc"
 endchoice
 
 config ISA
@@ -20,6 +22,7 @@ config ISA
   default "riscv32" if ISA_riscv && !RV64
   default "riscv64" if ISA_riscv &&  RV64
   default "loongarch32r" if ISA_loongarch32r
+  default "npc" if ISA_npc
   default "none"
 
 config ISA64
