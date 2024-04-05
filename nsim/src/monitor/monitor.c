@@ -16,6 +16,7 @@
 #include <isa.h>
 #include <memory/paddr.h>
 
+void init_verilator();
 void init_rand();
 void init_log(const char *log_file);
 void init_mem();
@@ -101,6 +102,9 @@ static int parse_args(int argc, char *argv[]) {
 
 void init_monitor(int argc, char *argv[]) {
   /* Perform some global initialization. */
+
+  /* Initialize the Verilator interface. */
+  init_verilator();
 
   /* Parse arguments. */
   parse_args(argc, argv);

@@ -5,6 +5,7 @@
 !*.mk
 !*.[cSh]
 !*.cc
+!*.cpp
 !.gitignore
 !README.md
 !Kconfig
