@@ -13,7 +13,7 @@
 # See the Mulan PSL v2 for more details.
 #**************************************************************************************/
 
-CVSRC += src/nsim-main.cpp
+SRCS-y += src/nsim-main.c
 DIRS-y += src/cpu src/monitor src/utils
 DIRS-$(CONFIG_MODE_SYSTEM) += src/memory
 DIRS-BLACKLIST-$(CONFIG_TARGET_AM) += src/monitor/sdb
