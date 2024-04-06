@@ -1,4 +1,4 @@
-module SramWrite (
+module SramWriteBlackBox (
   input         clk,
   input         en,
   input [63:0]  addr,
@@ -7,14 +7,14 @@ module SramWrite (
 );
 
   import "DPI-C" function void write_mem(
-    input int   addr,
-    input int   data,
-    input int   strb
+    input longint addr,
+    input longint data,
+    input byte    strb
   );
 
   wire [7:0] strb_1;
 
-  strb_1 = en ? strb : 8'h0;
+  assign strb_1 = en ? strb : 8'h0;
 
   always @(posedge clk) begin
     write_mem(addr, data, strb_1);

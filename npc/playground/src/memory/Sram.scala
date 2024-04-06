@@ -26,7 +26,7 @@ class SramReadBlackBox extends BlackBox with HasBlackBoxPath {
     val data = Output(UInt(XLEN.W))
   })
 
-  addPath("playground/src/memory/SramRead.sv")
+  addPath("playground/src/memory/SramReadBlackBox.sv")
 }
 
 class SramRead extends Module {
@@ -82,7 +82,7 @@ class SramWriteBlackBox extends BlackBox with HasBlackBoxPath {
     val strb    = Input(UInt(8.W))
   })
 
-  addPath("playground/src/memory/SramWrite.sv")
+  addPath("playground/src/memory/SramWriteBlackBox.sv")
 }
 
 class SramWrite extends Module {
