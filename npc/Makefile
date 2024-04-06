@@ -30,10 +30,13 @@ reformat:
 
 verilator: build
 	@echo $(call string_in_red, "=> Verilator Project")
-	@verilator --cc --exe \
+	@verilator --cc --build \
 		--top-module Top \
+		--trace \
+		-O3 --x-assign fast --x-initial fast --noassert \
 		--Mdir $(NSIM_HOME)/src/verilator/obj_dir \
-		`find $(BUILD_DIR)/gen -name "*.sv" | tr '\n' ' '`
+		`find $(BUILD_DIR)/gen -name "*.sv" | tr '\n' ' '` \
+		`find $(NSIM_HOME)/src/verilator -name "*.cpp" | tr '\n' ' '`
 
 .PHONY: build clean reformat test testonly verilator
 

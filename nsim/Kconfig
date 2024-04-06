@@ -26,7 +26,7 @@ config ISA
   default "none"
 
 config ISA64
-  depends on ISA_riscv && RV64
+  depends on (ISA_riscv && RV64) || ISA_npc
   bool
   default y
 

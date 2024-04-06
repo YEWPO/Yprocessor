@@ -14,7 +14,7 @@
 #**************************************************************************************/
 
 # Sanity check
-ifeq ($(wildcard $(NSIM_HOME)/src/nsim-main.cpp),)
+ifeq ($(wildcard $(NSIM_HOME)/src/nsim-main.c),)
   $(error NSIM_HOME=$(NSIM_HOME) is not a NSIM repo)
 endif
 
@@ -51,6 +51,10 @@ LDFLAGS += $(CFLAGS_BUILD)
 
 # Include rules for menuconfig
 include $(NSIM_HOME)/scripts/config.mk
+
+ifdef CONFIG_ISA_npc
+include $(NSIM_HOME)/src/verilator/verilator.mk
+endif
 
 ifdef CONFIG_TARGET_AM
 include $(AM_HOME)/Makefile
