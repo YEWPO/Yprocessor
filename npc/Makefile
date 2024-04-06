@@ -28,6 +28,13 @@ reformat:
 	@echo $(call string_in_red, "=> Reformat Project")
 	@mill -i __.reformat
 
-.PHONY: build clean reformat test testonly
+verilator: build
+	@echo $(call string_in_red, "=> Verilator Project")
+	@verilator --cc --exe \
+		--top-module Top \
+		--Mdir $(NSIM_HOME)/src/verilator/obj_dir \
+		`find $(BUILD_DIR)/gen -name "*.sv" | tr '\n' ' '`
+
+.PHONY: build clean reformat test testonly verilator
 
 include ../Makefile
