@@ -36,7 +36,7 @@ verilator: build
 		-O3 --x-assign fast --x-initial fast --noassert \
 		--Mdir $(NSIM_HOME)/src/verilator/obj_dir \
 		`find $(BUILD_DIR)/gen -name "*.sv" | tr '\n' ' '` \
-		`find $(NSIM_HOME)/src/verilator -name "*.cpp" | tr '\n' ' '`
+		`find $(NSIM_HOME)/src/verilator -name "*.cpp" | grep -Ev 'obj_dir' | tr '\n' ' '`
 
 .PHONY: build clean reformat test testonly verilator
 

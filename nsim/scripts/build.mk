@@ -14,8 +14,6 @@ INC_PATH := $(WORK_DIR)/include $(INC_PATH)
 OBJ_DIR  = $(BUILD_DIR)/obj-$(NAME)$(SO)
 BINARY   = $(BUILD_DIR)/$(NAME)$(SO)
 
-VERILATOR_ARCHIVES ?=
-
 # Compilation flags
 ifeq ($(CC),clang)
 CXX := clang++
@@ -51,9 +49,16 @@ $(OBJ_DIR)/%.o: %.cc
 
 app: $(BINARY)
 
+ifdef CONFIG_ISA_npc
+$(BINARY):: $(OBJS) $(ARCHIVES)
+	@$(MAKE) -C $(NPC_HOME) verilator
+	@echo + LD $@
+	@$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) `find $(NSIM_HOME)/src/verilator/obj_dir -name "*.a"` $(LIBS)
+else
 $(BINARY):: $(OBJS) $(ARCHIVES)
 	@echo + LD $@
-	@$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) $(VERILATOR_ARCHIVES) $(LIBS)
+	@$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) $(LIBS)
+endif
 
 clean:
 	-rm -rf $(BUILD_DIR)
