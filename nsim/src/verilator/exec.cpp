@@ -3,7 +3,7 @@
 #include <VTop.h>
 
 #define HIGH 1
-#define LOW  2
+#define LOW  0
 
 extern VerilatedContext* context;
 extern VTop* top;
@@ -17,6 +17,7 @@ static void step() {
   tfp->dump(context->time());
 #endif
 
+  context->timeInc(1);
   top->clock = LOW;
   top->eval();
 #ifdef CONFIG_WTRACE

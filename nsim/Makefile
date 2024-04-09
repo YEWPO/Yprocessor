@@ -52,6 +52,10 @@ LDFLAGS += $(CFLAGS_BUILD)
 # Include rules for menuconfig
 include $(NSIM_HOME)/scripts/config.mk
 
+ifdef CONFIG_ISA_npc
+include $(NSIM_HOME)/src/verilator/verilator.mk
+endif
+
 ifdef CONFIG_TARGET_AM
 include $(AM_HOME)/Makefile
 LINKAGE += $(ARCHIVES)
