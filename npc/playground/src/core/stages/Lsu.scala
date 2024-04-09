@@ -161,7 +161,8 @@ class Lsu extends Module {
       val lsuOp       = UInt(lsuOpLen.W)
       val kill        = Bool()
       val invalid     = Bool()
-      val pc          = UInt(XLEN.W)
+      val inst        = UInt(32.W)
+      val dnpc        = UInt(XLEN.W)
     }))
 
     val lsInfo = Flipped(Valid(new Bundle {
@@ -173,6 +174,10 @@ class Lsu extends Module {
     val lsuOut = Decoupled(new Bundle {
       val rd          = UInt(GPR_LEN.W)
       val lsuRes      = UInt(XLEN.W)
+      val kill        = Bool()
+      val invalid     = Bool()
+      val inst        = UInt(32.W)
+      val dnpc        = UInt(XLEN.W)
     })
 
     val axi               = new Axi4Bundle
@@ -198,4 +203,8 @@ class Lsu extends Module {
   io.lsuOut.valid         := io.lsuIn.valid && lsuFin
   io.lsuOut.bits.rd       := io.lsuIn.bits.rd
   io.lsuOut.bits.lsuRes   := lsuRes
+  io.lsuOut.bits.kill     := io.lsuIn.bits.kill
+  io.lsuOut.bits.invalid  := io.lsuIn.bits.invalid
+  io.lsuOut.bits.inst     := io.lsuIn.bits.inst
+  io.lsuOut.bits.dnpc     := io.lsuIn.bits.dnpc
 }

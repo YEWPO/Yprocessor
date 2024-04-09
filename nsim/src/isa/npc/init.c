@@ -13,6 +13,8 @@ void reset_cpu();
 
 static void restart() {
   reset_cpu();
+
+  cpu.pc = RESET_VECTOR;
 }
 
 void init_isa() {

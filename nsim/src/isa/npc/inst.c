@@ -13,7 +13,16 @@ void update_gprs(uint64_t *gprs) {
   gpr(0) = 0;
 }
 
+static Decode *ls;
+
+void update_inst(uint32_t inst, uint64_t dnpc) {
+  ls->isa.inst.val = inst;
+  ls->snpc += 4;
+  ls->dnpc = dnpc;
+}
+
  int isa_exec_once(Decode *s) {
+   ls = s;
    exec_one_cpu();
    return 0;
  }

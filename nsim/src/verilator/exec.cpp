@@ -1,6 +1,7 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 #include <VTop.h>
+#include "../include/inst.h"
 
 #define HIGH 1
 #define LOW  0
@@ -25,8 +26,25 @@ static void step() {
 #endif
 }
 
+extern "C" void update_inst(uint32_t inst, uint64_t dnpc);
+
 extern "C" void exec_one_cpu() {
-  step();
+  extern InstInfo inst_info;
+
+  int cycle_cnt = 0;
+
+  while (!inst_info.valid) {
+    step();
+    cycle_cnt++;
+
+    if (cycle_cnt > 100) {
+      break;
+    }
+  }
+
+  update_inst(inst_info.inst, inst_info.dnpc);
+
+  inst_info.valid = false;
 }
 
 extern "C" void reset_cpu() {
