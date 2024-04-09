@@ -50,7 +50,7 @@ $(OBJ_DIR)/%.o: %.cc
 app: $(BINARY)
 
 ifdef CONFIG_ISA_npc
-$(BINARY):: $(OBJS) $(ARCHIVES)
+$(BINARY):: $(OBJS) $(ARCHIVES) $(CVSRCS)
 	@$(MAKE) -C $(NPC_HOME) verilator
 	@echo + LD $@
 	@$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) `find $(NSIM_HOME)/src/verilator/obj_dir -name "*.a"` $(LIBS)
