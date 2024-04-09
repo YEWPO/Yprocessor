@@ -23,6 +23,7 @@ static void step() {
   top->eval();
 #ifdef CONFIG_WTRACE
   tfp->dump(context->time());
+  tfp->flush();
 #endif
 }
 
