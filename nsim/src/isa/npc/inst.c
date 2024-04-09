@@ -30,8 +30,12 @@ void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid) {
   ls->dnpc = dnpc;
 }
 
+void outtime_inst() {
+  Assert(0, "Oops, maybe something wrong with processor!");
+}
+
  int isa_exec_once(Decode *s) {
    ls = s;
    exec_one_cpu();
    return 0;
- }
+}

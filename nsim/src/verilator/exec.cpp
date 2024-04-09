@@ -27,6 +27,7 @@ static void step() {
 }
 
 extern "C" void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid);
+extern "C" void outtime_inst();
 
 extern "C" void exec_one_cpu() {
   extern InstInfo inst_info;
@@ -42,7 +43,11 @@ extern "C" void exec_one_cpu() {
     }
   }
 
-  update_inst(inst_info.inst, inst_info.dnpc, inst_info.kill, inst_info.invalid);
+  if (inst_info.en && cycle_cnt <= 100) {
+    update_inst(inst_info.inst, inst_info.dnpc, inst_info.kill, inst_info.invalid);
+  } else {
+    outtime_inst();
+  }
 
   inst_info.en = false;
 }
