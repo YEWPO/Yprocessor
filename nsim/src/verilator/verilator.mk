@@ -11,3 +11,8 @@ CVCFLAGS = -DCONFIG_WTRACE
 else
 CVCFLAGS =
 endif
+
+wv:
+	gtkwave $(NSIM_HOME)/build/trace.vcd &
+
+.PHONY: wv
