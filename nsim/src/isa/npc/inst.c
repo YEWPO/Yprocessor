@@ -15,9 +15,18 @@ void update_gprs(uint64_t *gprs) {
 
 static Decode *ls;
 
-void update_inst(uint32_t inst, uint64_t dnpc) {
+void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid) {
   ls->isa.inst.val = inst;
   ls->snpc += 4;
+
+  if (kill) {
+    NSIMTRAP(ls->pc, gpr(10));
+  }
+
+  if (invalid) {
+    INV(ls->pc);
+  }
+
   ls->dnpc = dnpc;
 }
 

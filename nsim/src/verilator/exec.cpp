@@ -26,14 +26,14 @@ static void step() {
 #endif
 }
 
-extern "C" void update_inst(uint32_t inst, uint64_t dnpc);
+extern "C" void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid);
 
 extern "C" void exec_one_cpu() {
   extern InstInfo inst_info;
 
   int cycle_cnt = 0;
 
-  while (!inst_info.valid) {
+  while (!inst_info.en) {
     step();
     cycle_cnt++;
 
@@ -42,9 +42,9 @@ extern "C" void exec_one_cpu() {
     }
   }
 
-  update_inst(inst_info.inst, inst_info.dnpc);
+  update_inst(inst_info.inst, inst_info.dnpc, inst_info.kill, inst_info.invalid);
 
-  inst_info.valid = false;
+  inst_info.en = false;
 }
 
 extern "C" void reset_cpu() {

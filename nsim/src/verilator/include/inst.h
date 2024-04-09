@@ -1,5 +1,7 @@
 struct InstInfo {
   int       inst;
   long long dnpc;
-  bool      valid;
+  bool      kill;
+  bool      invalid;
+  bool      en;
 };
