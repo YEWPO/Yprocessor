@@ -9,8 +9,10 @@ static const uint32_t img [] = {
   0xdeadbeef,  // some data
 };
 
+void reset_cpu();
+
 static void restart() {
-  // TODO
+  reset_cpu();
 }
 
 void init_isa() {
