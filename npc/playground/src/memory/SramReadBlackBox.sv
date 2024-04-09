@@ -6,9 +6,10 @@ module SramReadBlackBox (
 );
 
   import "DPI-C" function longint read_mem(
-    input longint addr
+    input longint addr,
+    input logic   en
   );
 
-  assign data = en ? read_mem(addr) : 64'h0;
+  assign data = en ? read_mem(addr, en) : 64'h0;
 
 endmodule
