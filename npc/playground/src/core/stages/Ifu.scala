@@ -34,7 +34,7 @@ class Ifu extends Module {
 
   val inst    = Mux(icache.io.response.valid, VecInit.tabulate(2){ i => icache.io.response.bits.data(32 * (i + 1) - 1, 32 * i) }(pcReg(2)), 0.U)
 
-  icache.io.request.valid           := io.abort && !io.ifuOut.ready
+  icache.io.request.valid           := !io.abort && !reset.asBool
   icache.io.request.bits.addr       := Cat(pcGen.io.npc(XLEN - 1, 3), 0.U(3.W))
   icache.io.abort                   := io.abort && !io.ifuOut.ready
 
