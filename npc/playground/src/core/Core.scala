@@ -49,6 +49,7 @@ class Core extends Module {
   val lsu2wbu = Module(new PipeReg(lsu.io.lsuOut.bits.cloneType))
 
   val idu2gpr = Module(new PipeReg(idu.io.iduGpr.bits.cloneType))
+  val exu2lsa = Module(new PipeReg(exu.io.lsInfo.bits.cloneType))
 
   ifu2idu.io.in <> ifu.io.ifuOut
   idu2exu.io.in <> idu.io.iduOut
@@ -56,6 +57,7 @@ class Core extends Module {
   lsu2wbu.io.in <> lsu.io.lsuOut
 
   idu2gpr.io.in <> idu.io.iduGpr
+  exu2lsa.io.in <> exu.io.lsInfo
 
   idu.io.iduIn <> ifu2idu.io.out
   exu.io.exuIn <> idu2exu.io.out
@@ -77,9 +79,9 @@ class Core extends Module {
   exu.io.src1       := gpr.io.src1
   exu.io.src2       := gpr.io.src2
 
-  lsu.io.lsInfo     <> exu.io.lsInfo
+  lsu.io.lsInfo     <> exu2lsa.io.out
 
-  axi            <> axiArbiter.io.axi
+  axi               <> axiArbiter.io.axi
   axiArbiter.io.ifu <> ifu.io.axi
   axiArbiter.io.lsu <> lsu.io.axi
 }

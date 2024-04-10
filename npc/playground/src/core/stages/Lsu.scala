@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util.Decoupled
 import core.CoreConfig._
 import LsuOp._
-import chisel3.util.Valid
 import bus.Axi4Bundle
 import core.modules.Cache
 import chisel3.util.switch
@@ -45,7 +44,7 @@ object LsArbiterState extends ChiselEnum {
 
 class LsArbiter extends Module {
   val io = IO(new Bundle {
-    val lsInfo = Flipped(Valid(new Bundle {
+    val lsInfo = Flipped(Decoupled(new Bundle {
       val addr         = UInt(XLEN.W)
       val wdata        = UInt(XLEN.W)
       val wstrb        = UInt((XLEN / 8).W)
@@ -115,6 +114,8 @@ class LsArbiter extends Module {
   io.data   := Mux(dcache.io.response.valid, dcache.io.response.bits.data, readData)
   io.finish := dcache.io.response.valid || readFin || writeFin
 
+  io.lsInfo.ready := io.finish
+
   nextState := sIdle
   switch (stateReg) {
     is (sIdle) {
@@ -165,7 +166,7 @@ class Lsu extends Module {
       val dnpc        = UInt(XLEN.W)
     }))
 
-    val lsInfo = Flipped(Valid(new Bundle {
+    val lsInfo = Flipped(Decoupled(new Bundle {
       val addr         = UInt(XLEN.W)
       val wdata        = UInt(XLEN.W)
       val wstrb        = UInt((XLEN / 8).W)
@@ -188,7 +189,7 @@ class Lsu extends Module {
 
   val lsArbiter           = Module(new LsArbiter)
 
-  lsArbiter.io.lsInfo     := io.lsInfo
+  lsArbiter.io.lsInfo     <> io.lsInfo
 
   val lsuRes              = Mux(io.lsuIn.bits.lsuOp(R_TAG), lsArbiter.io.data, io.lsuIn.bits.exuRes)
   val lsuFin              = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) || lsArbiter.io.finish

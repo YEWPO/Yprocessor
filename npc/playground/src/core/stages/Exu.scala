@@ -10,7 +10,6 @@ import core.modules.Alu
 import core.modules.Bu
 import core.modules.PreLsu
 import chisel3.util.Cat
-import chisel3.util.Valid
 
 object ExuSrc1 {
   val SRC1  = false.B
@@ -45,7 +44,7 @@ class Exu extends Module {
     val dnpc          = Output(UInt(XLEN.W))
     val control       = Output(Bool())
 
-    val lsInfo = Valid(new Bundle {
+    val lsInfo = Decoupled(new Bundle {
       val addr         = UInt(XLEN.W)
       val wdata        = UInt(XLEN.W)
       val wstrb        = UInt((XLEN / 8).W)
