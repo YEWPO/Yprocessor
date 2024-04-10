@@ -13,6 +13,7 @@ import chisel3.util.Counter
 import bus.Axi4ReadAddrBundle
 import chisel3.util.log2Up
 import bus.Axi4WriteDataBundle
+import core.modules.SufLsu
 
 object LsuOp {
   val lsuOpLen = 5
@@ -188,10 +189,15 @@ class Lsu extends Module {
   })
 
   val lsArbiter           = Module(new LsArbiter)
+  val sufLsu              = Module(new SufLsu)
 
   lsArbiter.io.lsInfo     <> io.lsInfo
 
-  val lsuRes              = Mux(io.lsuIn.bits.lsuOp(R_TAG), lsArbiter.io.data, io.lsuIn.bits.exuRes)
+  sufLsu.io.lsuOp         := Mux(io.lsuIn.valid, io.lsuIn.bits.lsuOp, 0.U)
+  sufLsu.io.addr          := io.lsInfo.bits.addr
+  sufLsu.io.src           := lsArbiter.io.data
+
+  val lsuRes              = Mux(io.lsuIn.bits.lsuOp(R_TAG), sufLsu.io.data, io.lsuIn.bits.exuRes)
   val lsuFin              = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) || lsArbiter.io.finish
 
   io.axi                  <> lsArbiter.io.axi
