@@ -89,7 +89,7 @@ class Exu extends Module {
   io.exuOut.bits.inst     := Mux(io.exuIn.valid, io.exuIn.bits.inst, 0.U)
   io.exuOut.bits.dnpc     := Mux(bu.io.control, bu.io.dnpc, io.exuIn.bits.snpc)
 
-  io.lsInfo.valid         := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp(R_TAG) || io.exuIn.bits.lsuOp(W_TAG), false.B) && io.exuOut.ready
+  io.lsInfo.valid         := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp(R_TAG) || io.exuIn.bits.lsuOp(W_TAG), false.B)
   io.lsInfo.bits.addr     := Cat(alu.io.res(XLEN - 1, 3), 0.U(3.W))
   io.lsInfo.bits.wdata    := preLsu.io.data
   io.lsInfo.bits.wstrb    := preLsu.io.strb

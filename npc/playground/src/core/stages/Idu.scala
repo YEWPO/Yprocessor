@@ -50,7 +50,7 @@ class Idu extends Module {
 
   io.iduIn.ready          := io.iduOut.ready
 
-  io.iduGpr.valid         := io.iduIn.valid && !io.abort && io.iduOut.ready
+  io.iduGpr.valid         := io.iduOut.fire
   io.iduGpr.bits.rs1      := decoder.io.rs1
   io.iduGpr.bits.rs2      := decoder.io.rs2
 
