@@ -2,7 +2,6 @@ package core.modules
 
 import chisel3._
 import core.CoreConfig._
-import chisel3.util.Decoupled
 import chisel3.util.HasBlackBoxPath
 
 class GprForward extends Module {
@@ -37,10 +36,8 @@ class Gpr extends Module {
     val rdLsu     = Input(UInt(GPR_LEN.W))
     val dataLsu   = Input(UInt(XLEN.W))
 
-    val rsIn      = Flipped(Decoupled(new Bundle {
-      val rs1     = UInt(GPR_LEN.W)
-      val rs2     = UInt(GPR_LEN.W)
-    }))
+    val rs1       = Input(UInt(GPR_LEN.W))
+    val rs2       = Input(UInt(GPR_LEN.W))
 
     val src1      = Output(UInt(XLEN.W))
     val src2      = Output(UInt(XLEN.W))
@@ -63,7 +60,6 @@ class Gpr extends Module {
   trueGpr     := gprForward.io.tarDatas
   trueGpr(0)  := 0.U(XLEN.W)
 
-  io.rsIn.ready := true.B
-  io.src1 := trueGpr(io.rsIn.bits.rs1)
-  io.src2 := trueGpr(io.rsIn.bits.rs2)
+  io.src1 := trueGpr(io.rs1)
+  io.src2 := trueGpr(io.rs2)
 }

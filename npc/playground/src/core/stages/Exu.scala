@@ -24,6 +24,8 @@ object ExuSrc2 {
 class Exu extends Module {
   val io = IO(new Bundle {
     val exuIn = Flipped(Decoupled(new Bundle {
+      val rs1         = UInt(GPR_LEN.W)
+      val rs2         = UInt(GPR_LEN.W)
       val rd          = UInt(GPR_LEN.W)
       val imm         = UInt(XLEN.W)
       val src1Sel     = Bool()
@@ -37,6 +39,9 @@ class Exu extends Module {
       val pc          = UInt(XLEN.W)
       val snpc        = UInt(XLEN.W)
     }))
+
+    val rs1           = Output(UInt(GPR_LEN.W))
+    val rs2           = Output(UInt(GPR_LEN.W))
 
     val src1          = Input(UInt(XLEN.W))
     val src2          = Input(UInt(XLEN.W))
@@ -93,6 +98,9 @@ class Exu extends Module {
   io.lsInfo.bits.addr     := Cat(alu.io.res(XLEN - 1, 3), 0.U(3.W))
   io.lsInfo.bits.wdata    := preLsu.io.data
   io.lsInfo.bits.wstrb    := preLsu.io.strb
+
+  io.rs1                  := io.exuIn.bits.rs1
+  io.rs2                  := io.exuIn.bits.rs2
 
   io.dnpc                 := bu.io.dnpc
   io.control              := bu.io.control

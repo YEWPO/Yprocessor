@@ -137,7 +137,7 @@ class LsArbiter extends Module {
     }
 
     is(sReadData) {
-      nextState := Mux(readDone, sIdle, sReadData)
+      nextState := Mux(readFin, sIdle, sReadData)
     }
 
     is (sWriteInit) {
@@ -149,7 +149,7 @@ class LsArbiter extends Module {
     }
 
     is (sWriteFin) {
-      nextState := Mux(io.axi.b.fire, sIdle, sWriteFin)
+      nextState := Mux(writeFin, sIdle, sWriteFin)
     }
   }
 }
