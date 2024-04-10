@@ -30,14 +30,14 @@ class AxiArbiter extends Module {
   io.axi.w  <> io.lsu.w
   io.lsu.b  <> io.axi.b
 
-  io.axi.ar.valid       := stateReg =/= IDLE
+  io.axi.ar.valid       := Mux(stateReg === IFU, io.ifu.ar.valid, Mux(stateReg === LSU, io.lsu.ar.valid, false.B))
   io.ifu.ar.ready       := Mux(stateReg === IFU, io.axi.ar.ready, false.B)
   io.lsu.ar.ready       := Mux(stateReg === LSU, io.axi.ar.ready, false.B)
   io.axi.ar.bits        := Mux(stateReg === IFU, io.ifu.ar.bits, io.lsu.ar.bits)
 
   io.ifu.r.valid        := Mux(stateReg === IFU, io.axi.r.valid, false.B)
   io.lsu.r.valid        := Mux(stateReg === LSU, io.axi.r.valid, false.B)
-  io.axi.r.ready        := Mux(stateReg === IFU, io.ifu.r.ready, io.lsu.r.ready)
+  io.axi.r.ready        := Mux(stateReg === IFU, io.ifu.r.ready, Mux(stateReg === LSU, io.lsu.r.ready, false.B))
   io.ifu.r.bits         := io.axi.r.bits
   io.lsu.r.bits         := io.axi.r.bits
 

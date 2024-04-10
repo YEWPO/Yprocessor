@@ -36,6 +36,7 @@ class SramRead extends Module {
   import SramReadState._
   val stateReg      = RegInit(rWait)
   val nextState     = Wire(SramReadState())
+  stateReg := nextState
 
   val arReg         = Reg(new Axi4ReadAddrBundle)
   arReg := Mux(ar.fire, ar.bits, arReg)
