@@ -1,4 +1,6 @@
 module InstInfoBlackBox (
+  input         clk,
+  input         rst,
   input [31:0] inst,
   input [63:0] dnpc,
   input        kill,
@@ -12,12 +14,6 @@ module InstInfoBlackBox (
   reg        invalid_reg;
   reg        en_reg;
 
-  assign inst_reg     = inst;
-  assign dnpc_reg     = dnpc;
-  assign kill_reg     = kill;
-  assign invalid_reg  = invalid;
-  assign en_reg       = en;
-
   import "DPI-C" function void output_inst(
     input int     inst,
     input longint dnpc,
@@ -26,7 +22,20 @@ module InstInfoBlackBox (
     input logic   en
   );
 
-  always @(*) begin
+  always @(posedge clk) begin
+    if (rst) begin
+      inst_reg    <= 32'h0;
+      dnpc_reg    <= 64'h0;
+      kill_reg    <= 1'b0;
+      invalid_reg <= 1'b0;
+      en_reg      <= 1'b0;
+    end else begin
+      inst_reg    <= inst;
+      dnpc_reg    <= dnpc;
+      kill_reg    <= kill;
+      invalid_reg <= invalid;
+      en_reg      <= en;
+    end
     output_inst(inst_reg, dnpc_reg, kill_reg, invalid_reg, en_reg);
   end
 

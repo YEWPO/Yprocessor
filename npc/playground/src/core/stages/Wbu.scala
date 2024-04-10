@@ -7,6 +7,8 @@ import chisel3.util.HasBlackBoxPath
 
 class InstInfoBlackBox extends BlackBox with HasBlackBoxPath {
   val io = IO(new Bundle {
+    val clk       = Input(Clock())
+    val rst       = Input(Bool())
     val inst      = Input(UInt(32.W))
     val dnpc      = Input(UInt(XLEN.W))
     val kill      = Input(Bool())
@@ -33,6 +35,8 @@ class Wbu extends Module {
   })
 
   val instInfo = Module(new InstInfoBlackBox)
+  instInfo.io.clk     := clock
+  instInfo.io.rst     := reset.asBool
   instInfo.io.inst    := io.wbuIn.bits.inst
   instInfo.io.dnpc    := io.wbuIn.bits.dnpc
   instInfo.io.kill    := io.wbuIn.bits.kill
