@@ -20,7 +20,7 @@ class PipeReg[T <: Data](gen: T) extends Module {
   val reg = Reg(gen)
   val valid = RegInit(false.B)
 
-  io.in.ready := !valid
+  io.in.ready := io.out.ready
   io.out.valid := valid
   io.out.bits := reg
 
