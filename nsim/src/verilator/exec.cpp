@@ -30,6 +30,8 @@ static void step() {
 extern "C" void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid);
 extern "C" void outtime_inst();
 
+extern "C" uint64_t nr_cycle = 0;
+
 extern "C" void exec_one_cpu() {
   extern InstInfo inst_info;
 
@@ -37,6 +39,7 @@ extern "C" void exec_one_cpu() {
 
   while (!inst_info.en) {
     step();
+    nr_cycle++;
     cycle_cnt++;
 
     if (cycle_cnt > 100) {
