@@ -114,7 +114,7 @@ class LsArbiter extends Module {
   io.data   := Mux(dcache.io.response.valid, dcache.io.response.bits.data, readData)
   io.finish := dcache.io.response.valid || readFin || writeFin
 
-  io.lsInfo.ready := io.finish
+  io.lsInfo.ready := true.B
 
   nextState := sIdle
   switch (stateReg) {
