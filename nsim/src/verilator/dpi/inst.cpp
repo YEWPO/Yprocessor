@@ -4,7 +4,7 @@
 
 InstInfo inst_info = {};
 
-void output_inst(int inst, long long dnpc, svLogic invalid, svLogic kill, svLogic en) {
+void output_inst(int inst, long long dnpc, svLogic kill, svLogic invalid, svLogic en) {
   inst_info.inst = inst;
   inst_info.dnpc = dnpc;
   inst_info.kill = kill;
