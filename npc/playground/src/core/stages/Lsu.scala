@@ -89,7 +89,7 @@ class LsArbiter extends Module {
   )))
 
   val readData  = Reg(UInt(XLEN.W))
-  val readFin   = RegNext(readDone)
+  val readFin   = readDone
   io.axi.r.ready                := Mux(isReadCache, dcache.io.axi.r.ready, RegNext(nextState === sReadData))
   when (io.axi.r.fire) {
     readData := io.axi.r.bits.data
@@ -109,7 +109,7 @@ class LsArbiter extends Module {
     true.B
   ))
 
-  val writeFin = RegNext(io.axi.b.fire)
+  val writeFin = io.axi.b.fire
   io.axi.b.ready                := RegNext(nextState === sWriteFin)
 
   io.data   := Mux(dcache.io.response.valid, dcache.io.response.bits.data, readData)
