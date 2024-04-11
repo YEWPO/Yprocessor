@@ -110,13 +110,13 @@ static int parse_args(int argc, char *argv[]) {
 void init_monitor(int argc, char *argv[]) {
   /* Perform some global initialization. */
 
+  /* Parse arguments. */
+  parse_args(argc, argv);
+
   /* Initialize the Verilator interface. */
 #ifdef CONFIG_ISA_npc
   init_verilator(trace_file);
 #endif
-
-  /* Parse arguments. */
-  parse_args(argc, argv);
 
   /* Set random seed. */
   init_rand();
