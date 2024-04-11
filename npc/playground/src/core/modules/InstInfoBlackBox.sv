@@ -36,6 +36,12 @@ module InstInfoBlackBox (
       invalid_reg <= invalid;
       en_reg      <= en;
     end
+  end
+
+  wire nclk;
+  assign nclk = ~clk;
+
+  always @(posedge nclk) begin
     output_inst(inst_reg, dnpc_reg, kill_reg, invalid_reg, en_reg);
   end
 
