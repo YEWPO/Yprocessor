@@ -16,7 +16,9 @@
 #include <isa.h>
 #include <memory/paddr.h>
 
+#ifdef CONFIG_ISA_npc
 void init_verilator(const char *trace_file);
+#endif
 void init_rand();
 void init_log(const char *log_file);
 void init_mem();
@@ -109,7 +111,9 @@ void init_monitor(int argc, char *argv[]) {
   /* Perform some global initialization. */
 
   /* Initialize the Verilator interface. */
+#ifdef CONFIG_ISA_npc
   init_verilator(trace_file);
+#endif
 
   /* Parse arguments. */
   parse_args(argc, argv);

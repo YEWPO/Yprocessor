@@ -108,10 +108,12 @@ static void statistic() {
   if (g_timer > 0) Log("simulation frequency = " NUMBERIC_FMT " inst/s", g_nr_guest_inst * 1000000 / g_timer);
   else Log("Finish running in less than 1 us and can not calculate the simulation frequency");
 
+#ifdef CONFIG_ISA_npc
   extern uint64_t nr_cycle;
   Log("total guest cycles = " NUMBERIC_FMT, nr_cycle);
   if (nr_cycle > 0) Log("IPC = %.2f", (double)g_nr_guest_inst / nr_cycle);
   else Log("Finish running in less than 1 instruction and can not calculate the ICP");
+#endif
 }
 
 void assert_fail_msg() {
