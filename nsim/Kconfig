@@ -35,6 +35,10 @@ if ISA_riscv
 source "src/isa/riscv32/Kconfig"
 endif
 
+if ISA_npc
+source "src/isa/npc/Kconfig"
+endif
+
 choice
   prompt "NSIM execution engine"
   default ENGINE_INTERPRETER

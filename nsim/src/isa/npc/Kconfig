@@ -1,0 +1,7 @@
+menu "ISA-dependent Options for npc"
+
+config RV64
+  bool "64-bit RISC-V architecture"
+  default y
+
+endmenu
