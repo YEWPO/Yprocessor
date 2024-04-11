@@ -15,6 +15,10 @@ static void restart() {
   reset_cpu();
 
   cpu.pc = RESET_VECTOR;
+
+  cpu.gpr[0] = 0;
+
+  cpu.csr[MSTATUS] = 0xa00001800;
 }
 
 void init_isa() {
