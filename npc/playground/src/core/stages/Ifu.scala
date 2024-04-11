@@ -44,7 +44,7 @@ class Ifu extends Module {
   pcGen.io.control                  := io.control
 
   io.axi                            <> icache.io.axi
-  io.ifuOut.valid                   := icache.io.response.valid
+  io.ifuOut.valid                   := icache.io.response.valid && !io.abort
   io.ifuOut.bits.inst               := inst
   io.ifuOut.bits.pc                 := pcReg
   io.ifuOut.bits.snpc               := pcGen.io.snpc
