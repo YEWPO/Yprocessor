@@ -11,6 +11,9 @@ import chisel3.util.Cat
 import chisel3.util.switch
 import chisel3.util.is
 import chisel3.util.MuxCase
+import bus.Axi4ReadAddrBundle
+import bus.Axi4WriteAddrBundle
+import bus.Axi4WriteDataBundle
 
 object LsuOp {
   val lsuOpLen = 5
@@ -49,6 +52,7 @@ class AxiLs extends Module {
     val strb    = Input(UInt((XLEN / 8).W))
 
     val rdata   = Output(UInt(XLEN.W))
+    val done    = Output(Bool())
 
     val axi     = new Axi4Bundle
   })
@@ -57,6 +61,31 @@ class AxiLs extends Module {
   val stateReg    = RegInit(sIdle)
   val nextState   = WireDefault(sIdle)
   stateReg        := nextState
+
+  io.axi.ar.valid := stateReg === sAR
+  io.axi.ar.bits  := Axi4ReadAddrBundle(
+    io.addr,
+    0.U,
+    3.U
+  )
+  io.axi.r.ready  := stateReg === sR
+
+  io.axi.aw.valid := stateReg === sAW
+  io.axi.aw.bits  := Axi4WriteAddrBundle(
+    io.addr,
+    0.U,
+    3.U
+  )
+  io.axi.w.valid  := stateReg === sW
+  io.axi.w.bits   := Axi4WriteDataBundle(
+    io.wdata,
+    io.strb,
+    true.B
+  )
+  io.axi.b.ready  := stateReg === sB
+
+  io.rdata        := io.axi.r.bits.data
+  io.done         := io.axi.b.fire || io.axi.r.fire
 
   switch (stateReg) {
     is (sIdle) {
