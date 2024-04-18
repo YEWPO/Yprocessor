@@ -14,6 +14,7 @@ import chisel3.util.MuxCase
 import bus.Axi4ReadAddrBundle
 import bus.Axi4WriteAddrBundle
 import bus.Axi4WriteDataBundle
+import core.modules.DCache
 
 object LsuOp {
   val lsuOpLen = 5
@@ -148,14 +149,46 @@ class Ls extends Module {
   val nextState   = WireDefault(sIdle)
   stateReg        := nextState
 
+  val axiLs       = Module(new AxiLs)
+  val dcache      = Module(new DCache)
+
+  axiLs.io.en     := axiOpReg
+  axiLs.io.addr   := io.addr
+  axiLs.io.wdata  := io.wdata
+  axiLs.io.strb   := io.strb
+
+  dcache.io.request.valid := cacheOpReg
+  dcache.io.request.bits.addr := io.addr
+  dcache.io.request.bits.data := io.wdata
+  dcache.io.request.bits.strb := io.strb
+
+  io.axi.ar.valid := Mux(axiOpReg, axiLs.io.axi.ar.valid, dcache.io.axi.ar.valid)
+  io.axi.ar.bits  := Mux(axiOpReg, axiLs.io.axi.ar.bits, dcache.io.axi.ar.bits)
+  io.axi.r.ready  := Mux(axiOpReg, axiLs.io.axi.r.ready, dcache.io.axi.r.ready)
+
+  axiLs.io.axi.ar.ready := Mux(axiOpReg, io.axi.ar.ready, false.B)
+  axiLs.io.axi.r.valid  := Mux(axiOpReg, io.axi.r.valid, false.B)
+  axiLs.io.axi.r.bits   := Mux(axiOpReg, io.axi.r.bits, 0.U)
+
+  dcache.io.axi.ar.ready := Mux(cacheOpReg, io.axi.ar.ready, false.B)
+  dcache.io.axi.r.valid  := Mux(cacheOpReg, io.axi.r.valid, false.B)
+  dcache.io.axi.r.bits   := Mux(cacheOpReg, io.axi.r.bits, 0.U)
+
+  io.axi.aw        <> axiLs.io.axi.aw
+  io.axi.w         <> axiLs.io.axi.w
+  io.axi.b         <> axiLs.io.axi.b
+
+  io.rdata        := Mux(axiOpReg, axiLs.io.rdata, dcache.io.response.bits.data)
+  io.done         := !(axiOpReg && !axiLs.io.done) && !(cacheOpReg && !dcache.io.response.valid)
+
   when (stateReg === sIdle) {
     cacheOpReg  := cacheOp
     axiOpReg    := axiOp
   }
 
   when (stateReg === sWork) {
-    cacheOpReg  := cacheOpReg
-    axiOpReg    := axiOpReg
+    cacheOpReg  := cacheOpReg && !dcache.io.response.valid
+    axiOpReg    := axiOpReg && !axiLs.io.done
   }
 
   switch (stateReg) {
@@ -166,7 +199,7 @@ class Ls extends Module {
     }
 
     is (sWork) {
-      nextState := Mux(!cacheOpReg && !axiOpReg, sIdle, sWork)
+      nextState := Mux(io.done, sIdle, sWork)
     }
   }
 }
