@@ -14,7 +14,10 @@ void isa_reg_display() {
   int i;
 
   for (i = 0; i < NR_REG; i++) {
-    printf("%s\t" FMT_WORD "\n", reg_name(i), gpr(i));
+    printf("%s\t" FMT_WORD "\t", reg_name(i), gpr(i));
+    if ((i + 1) % 4 == 0) {
+      printf("\n");
+    }
   }
 
   printf("pc\t" FMT_WORD "\n", cpu.pc);
