@@ -10,6 +10,7 @@ import memory.MemoryConfig._
 import chisel3.util.Cat
 import chisel3.util.switch
 import chisel3.util.is
+import chisel3.util.MuxCase
 
 object LsuOp {
   val lsuOpLen = 5
@@ -35,13 +36,65 @@ object LsuOp {
   val SD    = "b1_0_011".U
 }
 
+object AxiLsState extends ChiselEnum {
+  val sIdle, sAR, sR, sAW, sW, sB = Value
+}
+
+class AxiLs extends Module {
+  val io = IO(new Bundle {
+    val en      = Input(Bool())
+
+    val addr    = Input(UInt(XLEN.W))
+    val wdata   = Input(UInt(XLEN.W))
+    val strb    = Input(UInt((XLEN / 8).W))
+
+    val rdata   = Output(UInt(XLEN.W))
+
+    val axi     = new Axi4Bundle
+  })
+
+  import AxiLsState._
+  val stateReg    = RegInit(sIdle)
+  val nextState   = WireDefault(sIdle)
+  stateReg        := nextState
+
+  switch (stateReg) {
+    is (sIdle) {
+      nextState := MuxCase(sIdle, Seq(
+        (io.en && !io.strb.orR) -> sAR,
+        (io.en && io.strb.orR)  -> sAW
+      ))
+    }
+
+    is (sAR) {
+      nextState := Mux(io.axi.ar.fire, sR, sAR)
+    }
+
+    is (sR) {
+      nextState := Mux(io.axi.r.fire, sIdle, sR)
+    }
+
+    is (sAW) {
+      nextState := Mux(io.axi.aw.fire, sW, sAW)
+    }
+
+    is (sW) {
+      nextState := Mux(io.axi.w.fire, sB, sW)
+    }
+
+    is (sB) {
+      nextState := Mux(io.axi.b.fire, sIdle, sB)
+    }
+  }
+}
+
 object LsState extends ChiselEnum {
   val sIdle, sWork = Value
 }
 
 class Ls extends Module {
   val io = IO(new Bundle {
-    val en = Input(Bool())
+    val en      = Input(Bool())
 
     val addr    = Input(UInt(XLEN.W))
     val wdata   = Input(UInt(XLEN.W))
