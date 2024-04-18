@@ -8,6 +8,8 @@ import bus.Axi4Bundle
 import core.modules.SufLsu
 import memory.MemoryConfig._
 import chisel3.util.Cat
+import chisel3.util.switch
+import chisel3.util.is
 
 object LsuOp {
   val lsuOpLen = 5
@@ -33,6 +35,10 @@ object LsuOp {
   val SD    = "b1_0_011".U
 }
 
+object LsState extends ChiselEnum {
+  val sIdle, sWork = Value
+}
+
 class Ls extends Module {
   val io = IO(new Bundle {
     val en = Input(Bool())
@@ -47,8 +53,40 @@ class Ls extends Module {
     val axi     = new Axi4Bundle
   })
 
-  val memOp       = (io.addr >= MEM_ADDR_BASE.U) && (io.addr < MEM_ADDR_MAX.U)
+  val memOp       = io.en && (io.addr >= MEM_ADDR_BASE.U) && (io.addr < MEM_ADDR_MAX.U)
   val readOp      = io.en && !io.strb.orR
+  val cacheOp     = memOp
+  val axiOp       = !memOp || !readOp
+
+  val cacheOpReg  = Reg(Bool())
+  val axiOpReg    = Reg(Bool())
+
+  import LsState._
+  val stateReg    = RegInit(sIdle)
+  val nextState   = WireDefault(sIdle)
+  stateReg        := nextState
+
+  when (stateReg === sIdle) {
+    cacheOpReg  := cacheOp
+    axiOpReg    := axiOp
+  }
+
+  when (stateReg === sWork) {
+    cacheOpReg  := cacheOpReg
+    axiOpReg    := axiOpReg
+  }
+
+  switch (stateReg) {
+    is (sIdle) {
+      when (io.en) {
+        nextState := sWork
+      }
+    }
+
+    is (sWork) {
+      nextState := Mux(!cacheOpReg && !axiOpReg, sIdle, sWork)
+    }
+  }
 }
 
 class Lsu extends Module {
