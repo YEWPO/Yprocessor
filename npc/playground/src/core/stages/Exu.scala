@@ -9,7 +9,6 @@ import LsuOp._
 import core.modules.Alu
 import core.modules.Bu
 import core.modules.PreLsu
-import chisel3.util.Cat
 
 object ExuSrc1 {
   val SRC1  = false.B
@@ -49,13 +48,12 @@ class Exu extends Module {
     val dnpc          = Output(UInt(XLEN.W))
     val control       = Output(Bool())
 
-    val lsInfo = Decoupled(new Bundle {
-      val addr         = UInt(XLEN.W)
-      val wdata        = UInt(XLEN.W)
-      val wstrb        = UInt((XLEN / 8).W)
-    })
-
     val exuOut = Decoupled(new Bundle {
+      val lsInfo      = new Bundle {
+        val wdata      = UInt(XLEN.W)
+        val wstrb      = UInt((XLEN / 8).W)
+      }
+
       val rd          = UInt(GPR_LEN.W)
       val exuRes      = UInt(XLEN.W)
       val lsuOp       = UInt(lsuOpLen.W)
@@ -66,42 +64,39 @@ class Exu extends Module {
     })
   })
 
-  val alu                 = Module(new Alu)
-  val bu                  = Module(new Bu)
-  val preLsu              = Module(new PreLsu)
+  val alu                         = Module(new Alu)
+  val bu                          = Module(new Bu)
+  val preLsu                      = Module(new PreLsu)
 
-  alu.io.aluOp            := Mux(io.exuIn.valid, io.exuIn.bits.aluOp, 0.U)
-  alu.io.src1             := Mux(io.exuIn.bits.src1Sel, io.exuIn.bits.pc, io.src1)
-  alu.io.src2             := Mux(io.exuIn.bits.src2Sel, io.src2, io.exuIn.bits.imm)
+  alu.io.aluOp                    := Mux(io.exuIn.valid, io.exuIn.bits.aluOp, 0.U)
+  alu.io.src1                     := Mux(io.exuIn.bits.src1Sel, io.exuIn.bits.pc, io.src1)
+  alu.io.src2                     := Mux(io.exuIn.bits.src2Sel, io.src2, io.exuIn.bits.imm)
 
-  bu.io.buOp              := Mux(io.exuIn.valid, io.exuIn.bits.buOp, 0.U)
-  bu.io.src1              := io.src1
-  bu.io.src2              := io.src2
-  bu.io.tpc               := alu.io.res
+  bu.io.buOp                      := Mux(io.exuIn.valid, io.exuIn.bits.buOp, 0.U)
+  bu.io.src1                      := io.src1
+  bu.io.src2                      := io.src2
+  bu.io.tpc                       := alu.io.res
 
-  preLsu.io.lsuOp         := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp, 0.U)
-  preLsu.io.addr          := alu.io.res
-  preLsu.io.src           := io.src2
+  preLsu.io.lsuOp                 := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp, 0.U)
+  preLsu.io.addr                  := alu.io.res
+  preLsu.io.src                   := io.src2
 
-  io.exuIn.ready          := io.exuOut.ready
+  io.exuIn.ready                  := io.exuOut.ready
 
-  io.exuOut.valid         := io.exuIn.valid
-  io.exuOut.bits.rd       := Mux(io.exuIn.valid, io.exuIn.bits.rd, 0.U)
-  io.exuOut.bits.exuRes   := Mux(io.exuIn.bits.buOp(buOpLen - 1), io.exuIn.bits.snpc, alu.io.res)
-  io.exuOut.bits.lsuOp    := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp, 0.U)
-  io.exuOut.bits.kill     := Mux(io.exuIn.valid, io.exuIn.bits.kill, false.B)
-  io.exuOut.bits.invalid  := Mux(io.exuIn.valid, io.exuIn.bits.invalid, false.B)
-  io.exuOut.bits.inst     := Mux(io.exuIn.valid, io.exuIn.bits.inst, 0.U)
-  io.exuOut.bits.dnpc     := Mux(bu.io.control, bu.io.dnpc, io.exuIn.bits.snpc)
+  io.exuOut.valid                 := io.exuIn.valid
+  io.exuOut.bits.lsInfo.wdata     := preLsu.io.data
+  io.exuOut.bits.lsInfo.wstrb     := preLsu.io.strb
+  io.exuOut.bits.rd               := Mux(io.exuIn.valid, io.exuIn.bits.rd, 0.U)
+  io.exuOut.bits.exuRes           := Mux(io.exuIn.bits.buOp(buOpLen - 1), io.exuIn.bits.snpc, alu.io.res)
+  io.exuOut.bits.lsuOp            := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp, 0.U)
+  io.exuOut.bits.kill             := Mux(io.exuIn.valid, io.exuIn.bits.kill, false.B)
+  io.exuOut.bits.invalid          := Mux(io.exuIn.valid, io.exuIn.bits.invalid, false.B)
+  io.exuOut.bits.inst             := Mux(io.exuIn.valid, io.exuIn.bits.inst, 0.U)
+  io.exuOut.bits.dnpc             := Mux(bu.io.control, bu.io.dnpc, io.exuIn.bits.snpc)
 
-  io.lsInfo.valid         := Mux(io.exuIn.valid, io.exuIn.bits.lsuOp(R_TAG) || io.exuIn.bits.lsuOp(W_TAG), false.B)
-  io.lsInfo.bits.addr     := Cat(alu.io.res(XLEN - 1, 3), 0.U(3.W))
-  io.lsInfo.bits.wdata    := preLsu.io.data
-  io.lsInfo.bits.wstrb    := preLsu.io.strb
+  io.rs1                          := io.exuIn.bits.rs1
+  io.rs2                          := io.exuIn.bits.rs2
 
-  io.rs1                  := io.exuIn.bits.rs1
-  io.rs2                  := io.exuIn.bits.rs2
-
-  io.dnpc                 := bu.io.dnpc
-  io.control              := bu.io.control
+  io.dnpc                         := bu.io.dnpc
+  io.control                      := bu.io.control
 }

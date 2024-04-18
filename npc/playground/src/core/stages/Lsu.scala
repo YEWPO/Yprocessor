@@ -5,14 +5,6 @@ import chisel3.util.Decoupled
 import core.CoreConfig._
 import LsuOp._
 import bus.Axi4Bundle
-import core.modules.Cache
-import chisel3.util.switch
-import chisel3.util.is
-import memory.MemoryConfig._
-import chisel3.util.Counter
-import bus.Axi4ReadAddrBundle
-import chisel3.util.log2Up
-import bus.Axi4WriteDataBundle
 import core.modules.SufLsu
 
 object LsuOp {
@@ -39,125 +31,13 @@ object LsuOp {
   val SD    = "b1_0_011".U
 }
 
-object LsArbiterState extends ChiselEnum {
-  val sIdle, sReadCache, sReadInit, sReadData, sWriteInit, sWriteData, sWriteFin = Value
-}
-
-class LsArbiter extends Module {
-  val io = IO(new Bundle {
-    val lsInfo = Flipped(Decoupled(new Bundle {
-      val addr         = UInt(XLEN.W)
-      val wdata        = UInt(XLEN.W)
-      val wstrb        = UInt((XLEN / 8).W)
-    }))
-
-    val axi     = new Axi4Bundle
-
-    val data    = Output(UInt(XLEN.W))
-    val finish  = Output(Bool())
-  })
-
-  import LsArbiterState._
-  val stateReg      = RegInit(sIdle)
-  val nextState     = Wire(LsArbiterState())
-  stateReg := nextState
-
-  val dcache        = Module(new Cache)
-
-  val isRead        = io.lsInfo.valid && !io.lsInfo.bits.wstrb.orR
-  val isWrite       = io.lsInfo.valid && io.lsInfo.bits.wstrb.orR
-  val memoryOp      = (io.lsInfo.bits.addr >= MEM_ADDR_BASE.U) && (io.lsInfo.bits.addr < MEM_ADDR_MAX.U)
-
-  val isReadCache   = isRead && memoryOp
-  val isReadDevice  = isRead && !memoryOp
-
-  val (readCount, readDone)   = Counter(io.axi.r.fire, 1)
-  val (writeCount, writeDone) = Counter(io.axi.w.fire, 1)
-
-  dcache.io.request.valid       := isReadCache
-  dcache.io.request.bits.addr   := io.lsInfo.bits.addr
-  dcache.io.abort               := false.B
-  dcache.io.axi.ar.ready        := io.axi.ar.ready
-  dcache.io.axi.r.valid         := Mux(isReadCache, io.axi.r.valid, false.B)
-  dcache.io.axi.r.bits          := io.axi.r.bits
-
-  io.axi.ar.valid               := Mux(isReadCache, dcache.io.axi.ar.valid, RegNext(nextState === sReadInit))
-  io.axi.ar.bits                := Mux(isReadCache, dcache.io.axi.ar.bits, RegNext(Axi4ReadAddrBundle(
-    io.lsInfo.bits.addr,
-    0.U,
-    log2Up(XLEN / 8).U
-  )))
-
-  val readData  = Reg(UInt(XLEN.W))
-  val readFin   = readDone
-  io.axi.r.ready                := Mux(isReadCache, dcache.io.axi.r.ready, RegNext(nextState === sReadData))
-  when (io.axi.r.fire) {
-    readData := io.axi.r.bits.data
-  }
-
-  io.axi.aw.valid               := RegNext(nextState === sWriteInit)
-  io.axi.aw.bits                := RegNext(Axi4ReadAddrBundle(
-    io.lsInfo.bits.addr,
-    0.U,
-    log2Up(XLEN / 8).U
-  ))
-
-  io.axi.w.valid                := RegNext(nextState === sWriteData)
-  io.axi.w.bits                 := RegNext(Axi4WriteDataBundle(
-    io.lsInfo.bits.wdata,
-    io.lsInfo.bits.wstrb,
-    true.B
-  ))
-
-  val writeFin = io.axi.b.fire
-  io.axi.b.ready                := RegNext(nextState === sWriteFin)
-
-  io.data   := Mux(dcache.io.response.valid, dcache.io.response.bits.data, readData)
-  io.finish := dcache.io.response.valid || readFin || writeFin
-
-  io.lsInfo.ready := io.finish
-
-  nextState := sIdle
-  switch (stateReg) {
-    is (sIdle) {
-      when (isReadCache) {
-        nextState := sReadCache
-      } .elsewhen (isReadDevice) {
-        nextState := sReadInit
-      } .elsewhen (isWrite) {
-        nextState := sWriteInit
-      }
-    }
-
-    is (sReadCache) {
-      nextState := Mux(dcache.io.response.valid, sIdle, sReadCache)
-    }
-
-    is (sReadInit) {
-      nextState := Mux(io.axi.ar.fire, sReadData, sReadInit)
-    }
-
-    is(sReadData) {
-      nextState := Mux(readFin, sIdle, sReadData)
-    }
-
-    is (sWriteInit) {
-      nextState := Mux(io.axi.aw.fire, sWriteData, sWriteInit)
-    }
-
-    is (sWriteData) {
-      nextState := Mux(writeDone, sWriteFin, sWriteData)
-    }
-
-    is (sWriteFin) {
-      nextState := Mux(writeFin, sIdle, sWriteFin)
-    }
-  }
-}
-
 class Lsu extends Module {
   val io = IO(new Bundle {
     val lsuIn = Flipped(Decoupled(new Bundle {
+      val lsInfo      = new Bundle {
+        val wdata      = UInt(XLEN.W)
+        val wstrb      = UInt((XLEN / 8).W)
+      }
       val rd          = UInt(GPR_LEN.W)
       val exuRes      = UInt(XLEN.W)
       val lsuOp       = UInt(lsuOpLen.W)
@@ -165,12 +45,6 @@ class Lsu extends Module {
       val invalid     = Bool()
       val inst        = UInt(32.W)
       val dnpc        = UInt(XLEN.W)
-    }))
-
-    val lsInfo = Flipped(Decoupled(new Bundle {
-      val addr         = UInt(XLEN.W)
-      val wdata        = UInt(XLEN.W)
-      val wstrb        = UInt((XLEN / 8).W)
     }))
 
     val lsuOut = Decoupled(new Bundle {
@@ -188,19 +62,18 @@ class Lsu extends Module {
     val data              = Output(UInt(XLEN.W))
   })
 
-  val lsArbiter           = Module(new LsArbiter)
   val sufLsu              = Module(new SufLsu)
 
-  lsArbiter.io.lsInfo     <> io.lsInfo
 
   sufLsu.io.lsuOp         := Mux(io.lsuIn.valid, io.lsuIn.bits.lsuOp, 0.U)
-  sufLsu.io.addr          := io.lsInfo.bits.addr
-  sufLsu.io.src           := lsArbiter.io.data
+  sufLsu.io.addr          := io.lsuIn.bits.exuRes
+  sufLsu.io.src           := 0.U // TODO
 
   val lsuRes              = Mux(io.lsuIn.bits.lsuOp(R_TAG), sufLsu.io.data, io.lsuIn.bits.exuRes)
-  val lsuFin              = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) || lsArbiter.io.finish
+  val lsuFin              = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) // TODO
 
-  io.axi                  <> lsArbiter.io.axi
+  // TODO
+  // io.axi                  <> lsArbiter.io.axi
 
   io.rd                   := io.lsuIn.bits.rd
   io.data                 := lsuRes
