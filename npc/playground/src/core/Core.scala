@@ -26,7 +26,7 @@ class PipeReg[T <: Data](gen: T) extends Module {
 
   when(!valid || io.out.fire) {
     reg := io.in.bits
-    valid := io.in.valid
+    valid := io.in.fire
   }
 }
 

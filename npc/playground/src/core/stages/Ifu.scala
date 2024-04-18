@@ -36,7 +36,7 @@ class Ifu extends Module {
 
   icache.io.request.valid           := !reset.asBool && !io.abort
   icache.io.request.bits.addr       := Cat(pcGen.io.npc(XLEN - 1, 3), 0.U(3.W))
-  icache.io.abort                   := io.abort && !io.ifuOut.ready
+  icache.io.abort                   := io.abort
 
   pcGen.io.pc                       := pcReg
   pcGen.io.instLen                  := Mux(io.ifuOut.fire, inst(1, 0), 0.U)
@@ -44,6 +44,7 @@ class Ifu extends Module {
   pcGen.io.control                  := io.control
 
   io.axi                            <> icache.io.axi
+
   io.ifuOut.valid                   := icache.io.response.valid && !io.abort
   io.ifuOut.bits.inst               := inst
   io.ifuOut.bits.pc                 := pcReg
