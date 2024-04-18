@@ -31,6 +31,21 @@ object LsuOp {
   val SD    = "b1_0_011".U
 }
 
+class Ls extends Module {
+  val io = IO(new Bundle {
+    val en = Input(Bool())
+
+    val addr    = Input(UInt(XLEN.W))
+    val wdata   = Input(UInt(XLEN.W))
+    val strb    = Input(UInt((XLEN / 8).W))
+
+    val rdata   = Output(UInt(XLEN.W))
+    val done    = Output(Bool())
+
+    val axi     = new Axi4Bundle
+  })
+}
+
 class Lsu extends Module {
   val io = IO(new Bundle {
     val lsuIn = Flipped(Decoupled(new Bundle {
@@ -64,16 +79,16 @@ class Lsu extends Module {
 
   val sufLsu              = Module(new SufLsu)
 
+  val lsModule            = Module(new Ls)
 
   sufLsu.io.lsuOp         := Mux(io.lsuIn.valid, io.lsuIn.bits.lsuOp, 0.U)
   sufLsu.io.addr          := io.lsuIn.bits.exuRes
-  sufLsu.io.src           := 0.U // TODO
+  sufLsu.io.src           := lsModule.io.rdata
 
   val lsuRes              = Mux(io.lsuIn.bits.lsuOp(R_TAG), sufLsu.io.data, io.lsuIn.bits.exuRes)
-  val lsuFin              = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) // TODO
+  val lsuFin              = (!io.lsuIn.bits.lsuOp(R_TAG) && !io.lsuIn.bits.lsuOp(W_TAG)) || lsModule.io.done
 
-  // TODO
-  // io.axi                  <> lsArbiter.io.axi
+  io.axi                  <> lsModule.io.axi
 
   io.rd                   := io.lsuIn.bits.rd
   io.data                 := lsuRes
