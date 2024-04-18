@@ -5,7 +5,7 @@ import core.CoreConfig._
 import bus.Axi4ReadAddrBundle
 import chisel3.util.Decoupled
 import bus.Axi4ReadDataBundle
-import core.modules.Cache
+import core.modules.ICache
 import core.modules.PcGen
 import chisel3.util.Cat
 
@@ -26,7 +26,7 @@ class Ifu extends Module {
     }
   })
 
-  val icache  = Module(new Cache)
+  val icache  = Module(new ICache)
   val pcGen   = Module(new PcGen)
 
   val pcReg   = RegInit(START_ADDR.U)
