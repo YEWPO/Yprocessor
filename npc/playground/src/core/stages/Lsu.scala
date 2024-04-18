@@ -6,6 +6,8 @@ import core.CoreConfig._
 import LsuOp._
 import bus.Axi4Bundle
 import core.modules.SufLsu
+import memory.MemoryConfig._
+import chisel3.util.Cat
 
 object LsuOp {
   val lsuOpLen = 5
@@ -44,6 +46,9 @@ class Ls extends Module {
 
     val axi     = new Axi4Bundle
   })
+
+  val memOp       = (io.addr >= MEM_ADDR_BASE.U) && (io.addr < MEM_ADDR_MAX.U)
+  val readOp      = io.en && !io.strb.orR
 }
 
 class Lsu extends Module {
@@ -53,6 +58,7 @@ class Lsu extends Module {
         val wdata      = UInt(XLEN.W)
         val wstrb      = UInt((XLEN / 8).W)
       }
+
       val rd          = UInt(GPR_LEN.W)
       val exuRes      = UInt(XLEN.W)
       val lsuOp       = UInt(lsuOpLen.W)
@@ -80,6 +86,11 @@ class Lsu extends Module {
   val sufLsu              = Module(new SufLsu)
 
   val lsModule            = Module(new Ls)
+
+  lsModule.io.en          := Mux(io.lsuIn.valid, io.lsuIn.bits.lsuOp(R_TAG) || io.lsuIn.bits.lsuOp(W_TAG), false.B)
+  lsModule.io.addr        := Cat(io.lsuIn.bits.exuRes(31, 3), 0.U(3.W))
+  lsModule.io.wdata       := io.lsuIn.bits.lsInfo.wdata
+  lsModule.io.strb        := io.lsuIn.bits.lsInfo.wstrb
 
   sufLsu.io.lsuOp         := Mux(io.lsuIn.valid, io.lsuIn.bits.lsuOp, 0.U)
   sufLsu.io.addr          := io.lsuIn.bits.exuRes
