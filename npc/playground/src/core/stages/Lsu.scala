@@ -168,11 +168,11 @@ class Ls extends Module {
 
   axiLs.io.axi.ar.ready := Mux(axiOpReg, io.axi.ar.ready, false.B)
   axiLs.io.axi.r.valid  := Mux(axiOpReg, io.axi.r.valid, false.B)
-  axiLs.io.axi.r.bits   := Mux(axiOpReg, io.axi.r.bits, 0.U)
+  axiLs.io.axi.r.bits   := io.axi.r.bits
 
   dcache.io.axi.ar.ready := Mux(cacheOpReg, io.axi.ar.ready, false.B)
   dcache.io.axi.r.valid  := Mux(cacheOpReg, io.axi.r.valid, false.B)
-  dcache.io.axi.r.bits   := Mux(cacheOpReg, io.axi.r.bits, 0.U)
+  dcache.io.axi.r.bits   := io.axi.r.bits
 
   io.axi.aw        <> axiLs.io.axi.aw
   io.axi.w         <> axiLs.io.axi.w
