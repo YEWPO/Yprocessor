@@ -99,7 +99,7 @@ class DCache extends Module {
   }
 
   val outData       = Mux(stateReg === sRefilled, refillData.asUInt, hitData)
-  val responseValid = ((stateReg === sRead) && hit) || (stateReg === sRefilled) || (stateReg === sHit)
+  val responseValid = ((stateReg === sRead) && hit) || (stateReg === sRefilled) || (stateReg === sHit) || ((stateReg === sWrite && !hit))
 
   io.response.bits.data := VecInit.tabulate(nWord){ i => outData((i + 1) * XLEN - 1, i * XLEN) }(offsetReg)
   io.response.valid     := responseValid
@@ -133,8 +133,8 @@ class DCache extends Module {
     }
     is (sWrite) {
       nextState := MuxCase(sIdle, Seq(
-        (hit && io.request.valid && !io.request.bits.strb.orR)  -> sRead,
-        (hit && io.request.valid && io.request.bits.strb.orR)   -> sWrite,
+        (!hit && io.request.valid && !io.request.bits.strb.orR) -> sRead,
+        (!hit && io.request.valid && io.request.bits.strb.orR)  -> sWrite,
         hit                                                     -> sHit
       ))
     }

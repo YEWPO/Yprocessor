@@ -179,7 +179,7 @@ class Ls extends Module {
   io.axi.b         <> axiLs.io.axi.b
 
   io.rdata        := Mux(axiOpReg, axiLs.io.rdata, dcache.io.response.bits.data)
-  io.done         := !(axiOpReg && !axiLs.io.done) && !(cacheOpReg && !dcache.io.response.valid)
+  io.done         := (stateReg === sWork) && !(axiOpReg && !axiLs.io.done) && !(cacheOpReg && !dcache.io.response.valid)
 
   when (stateReg === sIdle) {
     cacheOpReg  := cacheOp
