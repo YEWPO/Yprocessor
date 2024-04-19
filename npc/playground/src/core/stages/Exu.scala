@@ -98,5 +98,5 @@ class Exu extends Module {
   io.rs2                          := io.exuIn.bits.rs2
 
   io.dnpc                         := bu.io.dnpc
-  io.control                      := bu.io.control
+  io.control                      := bu.io.control & io.exuOut.fire
 }
