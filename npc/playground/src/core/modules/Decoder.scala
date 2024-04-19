@@ -149,7 +149,7 @@ class Decoder extends Module {
       addw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     ADDW,   0.U,    0.U,    N,        N),
       subw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SUBW,   0.U,    0.U,    N,        N),
       sllw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLLW,   0.U,    0.U,    N,        N),
-      srlw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SLLW,   0.U,    0.U,    N,        N),
+      srlw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRLW,   0.U,    0.U,    N,        N),
       sraw      ->                    List(R,     rs1,      rs2,    rd,     SRC1,     SRC2,     SRAW,   0.U,    0.U,    N,        N),
 
       jal       ->                    List(J,     0.U,      0.U,    rd,     PC,       IMM,      ADD,    JAL,    0.U,    N,        N),
