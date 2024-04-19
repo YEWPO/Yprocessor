@@ -137,9 +137,11 @@ class Ls extends Module {
   })
 
   val memOp       = io.en && (io.addr >= MEM_ADDR_BASE.U) && (io.addr < MEM_ADDR_MAX.U)
+  val deviceOp    = io.en && !((io.addr >= MEM_ADDR_BASE.U) && (io.addr < MEM_ADDR_MAX.U))
   val readOp      = io.en && !io.strb.orR
+  val writeOp     = io.en && io.strb.orR
   val cacheOp     = memOp
-  val axiOp       = io.en && (!memOp || !readOp)
+  val axiOp       = deviceOp || (cacheOp && writeOp)
 
   val cacheOpReg  = Reg(Bool())
   val axiOpReg    = Reg(Bool())
