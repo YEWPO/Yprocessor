@@ -59,9 +59,9 @@ class DCache extends Module {
   val tag               = io.request.bits.addr(XLEN - 1, XLEN - tagWidth)
   val index             = io.request.bits.addr(indexWidth + offsetWidth - 1, offsetWidth)
   val offset            = io.request.bits.addr(offsetWidth - 1, log2Up(wordBtyes))
-  val tagReg            = RegNext(tag)
-  val indexReg          = RegNext(index)
-  val offsetReg         = RegNext(offset)
+  val tagReg            = Reg(UInt(tagWidth.W))
+  val indexReg          = Reg(UInt(indexWidth.W))
+  val offsetReg         = Reg(UInt(offset.getWidth.W))
   val randReg           = LFSR(16)
   val (readCnt, readWrap) = Counter(io.axi.r.fire, BLOCK_SIZE / wordBtyes)
 
@@ -74,6 +74,12 @@ class DCache extends Module {
   val wayHitState       = readTag.zipWithIndex.map{ case (wayTag, wayIndex) => vTable(wayIndex)(indexReg) & (wayTag === tagReg) }
   val hitData           = readData.zipWithIndex.map{ case (wayData, wayIndex) => wayData & Fill(wayData.getWidth, wayHitState(wayIndex)) }.reduce((x, y) => x | y)
   val hit               = wayHitState.reduce((x, y) => x | y)
+
+  when ((stateReg === sIdle) || ((stateReg === sRead) && hit) || ((stateReg === sWrite) && !hit)) {
+    tagReg    := tag
+    indexReg  := index
+    offsetReg := offset
+  }
 
   val refillData        = Reg(Vec(nWord, UInt(XLEN.W)))
   when (stateReg === sRefilled) {
