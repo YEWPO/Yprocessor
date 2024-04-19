@@ -57,7 +57,7 @@ class Alu extends Module {
   /** standard XLEN ops */
   val shamtWidthXlen = log2Up(XLEN)
 
-  val divByZero = !io.src2.andR
+  val divByZero = !io.src2.orR
   val overflow  = io.src1(XLEN - 1).andR & !io.src1(XLEN - 2, 0).orR & io.src2.andR
 
   val pMul    = io.src1.asSInt      *     io.src2.asSInt
@@ -95,7 +95,7 @@ class Alu extends Module {
   val src1w = getWord(io.src1)
   val src2w = getWord(io.src2)
 
-  val divByZeroW = !src2w.andR
+  val divByZeroW = !src2w.orR
   val overflowW  = src1w(31).andR & !src1w(30, 0).orR & src2w.andR
 
   val pMulw   = src1w.asSInt      *     src2w.asSInt
