@@ -101,7 +101,7 @@ class Alu extends Module {
   val pMulw   = src1w.asSInt      *     src2w.asSInt
   val pDivw   = src1w.asSInt      /     src2w.asSInt
   val pDivuw  = src1w             /     src2w
-  val pRemw   = src1w.asSInt      %     src2w.asSInt
+  val pRemw   = asSInt(src1w)     %     asSInt(src2w)
   val pRemuw  = src1w             %     src2w
 
   val addw    = src1w             +     src2w
@@ -112,9 +112,9 @@ class Alu extends Module {
   val sraw    = (src1w.asSInt     >>    src2w(shamtWidth32 - 1, 0)).asUInt
 
   val mulw    = pMulw(31, 0)
-  val divw    = MuxCase(pDivw.asUInt, Seq(divByZeroW -> uMax(32), overflowW -> sMin(32)))
+  val divw    = MuxCase(getWord(pDivw), Seq(divByZeroW -> uMax(32), overflowW -> sMin(32)))
   val divuw   = Mux(divByZeroW, uMax(32), pDivuw)
-  val remw    = MuxCase(pRemw.asUInt, Seq(divByZeroW -> src1w, overflowW -> 0.U(32.W)))
+  val remw    = MuxCase(getWord(pRemw), Seq(divByZeroW -> src1w, overflowW -> 0.U(32.W)))
   val remuw   = Mux(divByZeroW, src1w, pRemuw)
 
   io.res := MuxLookup(io.aluOp, 0.U(XLEN.W))(Seq(
