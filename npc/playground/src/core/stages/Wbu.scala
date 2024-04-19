@@ -13,6 +13,7 @@ class InstInfoBlackBox extends BlackBox with HasBlackBoxPath {
     val dnpc      = Input(UInt(XLEN.W))
     val kill      = Input(Bool())
     val invalid   = Input(Bool())
+    val device    = Input(Bool())
     val en        = Input(Bool())
   })
 
@@ -26,6 +27,7 @@ class Wbu extends Module {
       val lsuRes    = UInt(XLEN.W)
       val kill      = Bool()
       val invalid   = Bool()
+      val device    = Bool()
       val inst      = UInt(32.W)
       val dnpc      = UInt(XLEN.W)
     }))
@@ -41,6 +43,7 @@ class Wbu extends Module {
   instInfo.io.dnpc    := io.wbuIn.bits.dnpc
   instInfo.io.kill    := io.wbuIn.bits.kill
   instInfo.io.invalid := io.wbuIn.bits.invalid
+  instInfo.io.device  := io.wbuIn.bits.device
   instInfo.io.en      := io.wbuIn.valid
 
   io.wbuIn.ready := true.B

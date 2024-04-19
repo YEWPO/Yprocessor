@@ -27,7 +27,7 @@ static void step() {
 #endif
 }
 
-extern "C" void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid);
+extern "C" void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid, bool device);
 extern "C" void outtime_inst();
 
 uint64_t nr_cycle = 0;
@@ -48,7 +48,7 @@ extern "C" void exec_one_cpu() {
   }
 
   if (inst_info.en && cycle_cnt <= 100) {
-    update_inst(inst_info.inst, inst_info.dnpc, inst_info.kill, inst_info.invalid);
+    update_inst(inst_info.inst, inst_info.dnpc, inst_info.kill, inst_info.invalid, inst_info.device);
   } else {
     outtime_inst();
   }

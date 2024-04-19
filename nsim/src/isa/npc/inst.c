@@ -2,6 +2,7 @@
 #include <cpu/cpu.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
+#include <cpu/difftest.h>
 
 void exec_one_cpu();
 
@@ -15,7 +16,7 @@ void update_gprs(uint64_t *gprs) {
 
 static Decode *ls;
 
-void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid) {
+void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid, bool device) {
   ls->isa.inst.val = inst;
   ls->snpc += 4;
 
@@ -25,6 +26,10 @@ void update_inst(uint32_t inst, uint64_t dnpc, bool kill, bool invalid) {
 
   if (invalid) {
     INV(ls->pc);
+  }
+
+  if (device) {
+    difftest_skip_ref();
   }
 
   ls->dnpc = dnpc;

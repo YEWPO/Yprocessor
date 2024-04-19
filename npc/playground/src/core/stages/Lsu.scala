@@ -133,6 +133,8 @@ class Ls extends Module {
     val rdata   = Output(UInt(XLEN.W))
     val done    = Output(Bool())
 
+    val device  = Output(Bool())
+
     val axi     = new Axi4Bundle
   })
 
@@ -183,6 +185,8 @@ class Ls extends Module {
   io.rdata        := Mux(axiOpReg, axiLs.io.rdata, dcache.io.response.bits.data)
   io.done         := (stateReg === sWork) && !(axiOpReg && !axiLs.io.done) && !(cacheOpReg && !dcache.io.response.valid)
 
+  io.device       := deviceOp
+
   when (stateReg === sIdle) {
     cacheOpReg  := cacheOp
     axiOpReg    := axiOp
@@ -228,6 +232,7 @@ class Lsu extends Module {
       val lsuRes      = UInt(XLEN.W)
       val kill        = Bool()
       val invalid     = Bool()
+      val device      = Bool()
       val inst        = UInt(32.W)
       val dnpc        = UInt(XLEN.W)
     })
@@ -266,6 +271,7 @@ class Lsu extends Module {
   io.lsuOut.bits.lsuRes   := lsuRes
   io.lsuOut.bits.kill     := io.lsuIn.bits.kill
   io.lsuOut.bits.invalid  := io.lsuIn.bits.invalid
+  io.lsuOut.bits.device   := lsModule.io.device
   io.lsuOut.bits.inst     := io.lsuIn.bits.inst
   io.lsuOut.bits.dnpc     := io.lsuIn.bits.dnpc
 }
