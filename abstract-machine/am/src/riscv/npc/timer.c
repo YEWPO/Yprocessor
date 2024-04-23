@@ -13,7 +13,7 @@ void __am_timer_init() {
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
   uint64_t now_time = READ_RTC;
-  uptime->us = now_time - boot_time;
+  uptime->us = (now_time - boot_time) * 37 / 100;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
