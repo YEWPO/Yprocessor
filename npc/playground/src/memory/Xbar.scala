@@ -42,10 +42,37 @@ class Xbar extends Module {
   io.sram.ar      <> io.axi.ar
   io.sram.r       <> io.axi.r
 
+  import XbarReadState._
   import XbarWriteState._
+
+  val readStateReg     = RegInit(rIdle)
+  val readNextState    = WireDefault(rIdle)
+  readStateReg := readNextState
+
   val writeStateReg    = RegInit(wIdle)
   val writeNextState   = WireDefault(wIdle)
   writeStateReg := writeNextState
+
+  val timerRead   = io.axi.ar.valid && (io.axi.ar.bits.addr === TIMER_ADDR.U)
+  val sramRead    = io.axi.ar.valid && (io.axi.ar.bits.addr >= MEM_ADDR_BASE.U) && (io.axi.ar.bits.addr < MEM_ADDR_MAX.U)
+
+  io.timer.ar.valid := Mux(readStateReg === rTimer, io.axi.ar.valid, false.B)
+  io.timer.ar.bits  := io.axi.ar.bits
+  io.timer.r.ready  := Mux(readStateReg === rTimer, io.axi.r.ready, false.B)
+
+  io.sram.ar.valid := Mux(readStateReg === rSram, io.axi.ar.valid, false.B)
+  io.sram.ar.bits  := io.axi.ar.bits
+  io.sram.r.ready  := Mux(readStateReg === rSram, io.axi.r.ready, false.B)
+
+  io.axi.ar.ready := MuxCase(false.B, Seq(
+    timerRead -> io.timer.ar.ready,
+    sramRead -> io.sram.ar.ready
+  ))
+  io.axi.r.valid := MuxCase(false.B, Seq(
+    timerRead -> io.timer.r.valid,
+    sramRead -> io.sram.r.valid
+  ))
+  io.axi.r.bits  := Mux(readStateReg === rTimer, io.timer.r.bits, io.sram.r.bits)
 
   val uartWrite   = io.axi.aw.valid && (io.axi.aw.bits.addr === UART_ADDR.U)
   val sramWrite   = io.axi.aw.valid && (io.axi.aw.bits.addr >= MEM_ADDR_BASE.U) && (io.axi.aw.bits.addr < MEM_ADDR_MAX.U)
@@ -75,6 +102,31 @@ class Xbar extends Module {
     (writeStateReg === wSram) -> io.sram.b.valid
   ))
   io.axi.b.bits   := Mux(writeStateReg === wUart, io.uart.b.bits, io.sram.b.bits)
+
+  switch (readNextState) {
+    is (rIdle) {
+      readNextState := MuxCase(rIdle, Seq(
+        timerRead -> rTimer,
+        sramRead -> rSram
+      ))
+    }
+
+    is (rTimer) {
+      readNextState := MuxCase(rTimer, Seq(
+        (io.timer.r.fire && timerRead) -> rTimer,
+        (io.timer.r.fire && sramRead) -> rSram,
+        io.timer.r.fire -> rIdle
+      ))
+    }
+
+    is (rSram) {
+      readNextState := MuxCase(rSram, Seq(
+        (io.sram.r.fire && timerRead) -> rTimer,
+        (io.sram.r.fire && sramRead) -> rSram,
+        io.sram.r.fire -> rIdle
+      ))
+    }
+  }
 
   switch (writeStateReg) {
     is (wIdle) {
