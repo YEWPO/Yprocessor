@@ -1,10 +1,19 @@
 #include <am.h>
+#include ISA_H
+
+#define RTC_ADDR 0xa0000048
+
+static uint64_t boot_time;
+
+#define READ_RTC ((uint64_t)inl(RTC_ADDR + 4) << 32) | (uint64_t)inl(RTC_ADDR)
 
 void __am_timer_init() {
+  boot_time = READ_RTC;
 }
 
 void __am_timer_uptime(AM_TIMER_UPTIME_T *uptime) {
-  uptime->us = 0;
+  uint64_t now_time = READ_RTC;
+  uptime->us = now_time - boot_time;
 }
 
 void __am_timer_rtc(AM_TIMER_RTC_T *rtc) {
