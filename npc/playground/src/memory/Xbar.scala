@@ -103,7 +103,7 @@ class Xbar extends Module {
   ))
   io.axi.b.bits   := Mux(writeStateReg === wUart, io.uart.b.bits, io.sram.b.bits)
 
-  switch (readNextState) {
+  switch (readStateReg) {
     is (rIdle) {
       readNextState := MuxCase(rIdle, Seq(
         timerRead -> rTimer,
