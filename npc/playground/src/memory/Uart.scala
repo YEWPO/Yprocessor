@@ -16,7 +16,7 @@ class Uart extends Module {
   val io = IO(new Bundle {
     val axi = new Bundle {
       val aw = Flipped(Decoupled(new Axi4WriteAddrBundle))
-      val w  = Decoupled(new Axi4WriteDataBundle)
+      val w  = Flipped(Decoupled(new Axi4WriteDataBundle))
       val b  = Decoupled(new Axi4WriteRespBundle)
     }
   })

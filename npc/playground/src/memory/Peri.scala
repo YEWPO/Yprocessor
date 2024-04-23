@@ -4,16 +4,14 @@ import chisel3._
 import bus.Axi4Bundle
 
 class Peri extends Module {
-  val io = IO(new Bundle {
-    val axi = Flipped(new Axi4Bundle)
-  })
+  val axi = IO(Flipped(new Axi4Bundle))
 
   val xbar = Module(new Xbar)
   
   val uart = Module(new Uart)
   val sram = Module(new Sram)
 
-  xbar.io.axi <> io.axi
+  xbar.io.axi <> axi
 
   uart.io.axi.aw <> xbar.io.uart.aw
   uart.io.axi.w  <> xbar.io.uart.w

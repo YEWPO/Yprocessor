@@ -7,6 +7,9 @@ import chisel3.util.switch
 import chisel3.util.is
 import MemoryConfig._
 import chisel3.util.MuxCase
+import bus.Axi4WriteAddrBundle
+import bus.Axi4WriteDataBundle
+import bus.Axi4WriteRespBundle
 
 object XbarReadState extends ChiselEnum {
 }
@@ -20,9 +23,9 @@ class Xbar extends Module {
     val axi = Flipped(new Axi4Bundle)
 
     val uart = new Bundle {
-      val aw = Decoupled(new Axi4Bundle)
-      val w  = Decoupled(new Axi4Bundle)
-      val b  = Flipped(Decoupled(new Axi4Bundle))
+      val aw = Decoupled(new Axi4WriteAddrBundle)
+      val w  = Decoupled(new Axi4WriteDataBundle)
+      val b  = Flipped(Decoupled(new Axi4WriteRespBundle))
     }
 
     val sram = new Axi4Bundle
@@ -36,10 +39,25 @@ class Xbar extends Module {
   val nextState   = WireDefault(wIdle)
   stateReg        := nextState
 
-  val uartWrite   = io.axi.aw.bits.addr === 0xa00003f8.U
+  val uartWrite   = io.axi.aw.bits.addr === UART_ADDR.U
   val sramWrite   = (io.axi.aw.bits.addr >= MEM_ADDR_BASE.U) && (io.axi.aw.bits.addr < MEM_ADDR_MAX.U)
 
-  io.axi.aw.ready := stateReg === wIdle
+  io.uart.aw.valid := Mux(stateReg === wUart, io.axi.aw.valid, false.B)
+  io.uart.aw.bits  := io.axi.aw.bits
+  io.uart.w.valid  := Mux(stateReg === wUart, io.axi.w.valid, false.B)
+  io.uart.w.bits   := io.axi.w.bits
+  io.uart.b.ready  := Mux(stateReg === wUart, io.axi.b.ready, false.B)
+
+  io.sram.aw.valid := Mux(stateReg === wSram, io.axi.aw.valid, false.B)
+  io.sram.aw.bits  := io.axi.aw.bits
+  io.sram.w.valid  := Mux(stateReg === wSram, io.axi.w.valid, false.B)
+  io.sram.w.bits   := io.axi.w.bits
+  io.sram.b.ready  := Mux(stateReg === wSram, io.axi.b.ready, false.B)
+
+  io.axi.aw.ready := MuxCase(false.B, Seq(
+    (stateReg === wUart) -> io.uart.aw.ready,
+    (stateReg === wSram) -> io.sram.aw.ready
+  ))
   io.axi.w.ready  := MuxCase(false.B, Seq(
     (stateReg === wUart) -> io.uart.w.ready,
     (stateReg === wSram) -> io.sram.w.ready
@@ -48,31 +66,28 @@ class Xbar extends Module {
     (stateReg === wUart) -> io.uart.b.valid,
     (stateReg === wSram) -> io.sram.b.valid
   ))
-  io.axi.b.bits   := MuxCase(io.uart.b.bits, Seq(
-    (stateReg === wUart) -> io.uart.b.bits,
-    (stateReg === wSram) -> io.sram.b.bits
-  ))
+  io.axi.b.bits   := Mux(stateReg === wUart, io.uart.b.bits, io.sram.b.bits)
 
   switch (stateReg) {
     is (wIdle) {
       nextState := MuxCase(wIdle, Seq(
-        (io.axi.aw.fire && uartWrite) -> wUart,
-        (io.axi.aw.fire && sramWrite) -> wSram
+        uartWrite -> wUart,
+        sramWrite -> wSram
       ))
     }
 
     is (wUart) {
       nextState := MuxCase(wUart, Seq(
-        (io.uart.b.fire && io.axi.aw.fire && uartWrite) -> wUart,
-        (io.uart.b.fire && io.axi.aw.fire && sramWrite) -> wSram,
+        (io.uart.b.fire && uartWrite) -> wUart,
+        (io.uart.b.fire && sramWrite) -> wSram,
         io.uart.b.fire -> wIdle
       ))
     }
 
     is (wSram) {
       nextState := MuxCase(wSram, Seq(
-        (io.sram.b.fire && io.axi.aw.fire && uartWrite) -> wUart,
-        (io.sram.b.fire && io.axi.aw.fire && sramWrite) -> wSram,
+        (io.sram.b.fire && uartWrite) -> wUart,
+        (io.sram.b.fire && sramWrite) -> wSram,
         io.sram.b.fire -> wIdle
       ))
     }

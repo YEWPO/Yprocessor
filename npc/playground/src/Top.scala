@@ -1,10 +1,10 @@
 import chisel3._
 import core.Core
-import memory.Sram
+import memory.Peri
 
 class Top extends Module {
   val core    = Module(new Core)
-  val sram    = Module(new Sram)
+  val peri    = Module(new Peri)
 
-  core.axi <> sram.axi
+  core.axi <> peri.axi
 }
