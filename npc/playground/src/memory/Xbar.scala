@@ -39,8 +39,8 @@ class Xbar extends Module {
   val nextState   = WireDefault(wIdle)
   stateReg        := nextState
 
-  val uartWrite   = io.axi.aw.bits.addr === UART_ADDR.U
-  val sramWrite   = (io.axi.aw.bits.addr >= MEM_ADDR_BASE.U) && (io.axi.aw.bits.addr < MEM_ADDR_MAX.U)
+  val uartWrite   = io.axi.aw.valid && (io.axi.aw.bits.addr === UART_ADDR.U)
+  val sramWrite   = io.axi.aw.valid && (io.axi.aw.bits.addr >= MEM_ADDR_BASE.U) && (io.axi.aw.bits.addr < MEM_ADDR_MAX.U)
 
   io.uart.aw.valid := Mux(stateReg === wUart, io.axi.aw.valid, false.B)
   io.uart.aw.bits  := io.axi.aw.bits
