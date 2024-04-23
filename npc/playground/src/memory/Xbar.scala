@@ -65,12 +65,12 @@ class Xbar extends Module {
   io.sram.r.ready  := Mux(readStateReg === rSram, io.axi.r.ready, false.B)
 
   io.axi.ar.ready := MuxCase(false.B, Seq(
-    timerRead -> io.timer.ar.ready,
-    sramRead -> io.sram.ar.ready
+    (readStateReg === rTimer) -> io.timer.ar.ready,
+    (readStateReg === rSram)  -> io.sram.ar.ready
   ))
   io.axi.r.valid := MuxCase(false.B, Seq(
-    timerRead -> io.timer.r.valid,
-    sramRead -> io.sram.r.valid
+    (readStateReg === rTimer) -> io.timer.r.valid,
+    (readStateReg === rSram)  -> io.sram.r.valid
   ))
   io.axi.r.bits  := Mux(readStateReg === rTimer, io.timer.r.bits, io.sram.r.bits)
 
@@ -113,17 +113,17 @@ class Xbar extends Module {
 
     is (rTimer) {
       readNextState := MuxCase(rTimer, Seq(
-        (io.timer.r.fire && timerRead) -> rTimer,
-        (io.timer.r.fire && sramRead) -> rSram,
+        (io.timer.r.fire && io.timer.r.bits.last && timerRead) -> rTimer,
+        (io.timer.r.fire && io.timer.r.bits.last && sramRead) -> rSram,
         io.timer.r.fire -> rIdle
       ))
     }
 
     is (rSram) {
       readNextState := MuxCase(rSram, Seq(
-        (io.sram.r.fire && timerRead) -> rTimer,
-        (io.sram.r.fire && sramRead) -> rSram,
-        io.sram.r.fire -> rIdle
+        (io.sram.r.fire && io.sram.r.bits.last && timerRead) -> rTimer,
+        (io.sram.r.fire && io.sram.r.bits.last && sramRead) -> rSram,
+        (io.sram.r.fire && io.sram.r.bits.last) -> rIdle
       ))
     }
   }
