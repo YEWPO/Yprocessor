@@ -38,7 +38,7 @@ void *malloc(size_t size) {
   static uint64_t heap_top = (uint64_t)&_heap_start;
 
   uint64_t ret_start = heap_top;
-  while (size % 4 != 0) size++;
+  while (size % 8 != 0) size = (size + 8) & ~0x7;
   heap_top += size;
   return (void *)ret_start;
 #endif
