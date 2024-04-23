@@ -13,12 +13,10 @@ object UartState extends ChiselEnum {
 }
 
 class Uart extends Module {
-  val io = IO(new Bundle {
-    val axi = new Bundle {
-      val aw = Flipped(Decoupled(new Axi4WriteAddrBundle))
-      val w  = Flipped(Decoupled(new Axi4WriteDataBundle))
-      val b  = Decoupled(new Axi4WriteRespBundle)
-    }
+  val axi = IO(new Bundle {
+    val aw = Flipped(Decoupled(new Axi4WriteAddrBundle))
+    val w  = Flipped(Decoupled(new Axi4WriteDataBundle))
+    val b  = Decoupled(new Axi4WriteRespBundle)
   })
 
   import UartState._
@@ -26,26 +24,26 @@ class Uart extends Module {
   val nextState = WireDefault(sIdle)
   stateReg := nextState
 
-  io.axi.aw.ready   := stateReg === sIdle
-  io.axi.w.ready    := stateReg === sWrite
-  io.axi.b.valid    := stateReg === sFin
-  io.axi.b.bits     := Axi4WriteRespBundle()
+  axi.aw.ready   := stateReg === sIdle
+  axi.w.ready    := stateReg === sWrite
+  axi.b.valid    := stateReg === sFin
+  axi.b.bits     := Axi4WriteRespBundle()
 
-  when (io.axi.w.fire) {
-    printf(cf"${io.axi.w.bits.data(7, 0)}%c")
+  when (axi.w.fire) {
+    printf(cf"${axi.w.bits.data(7, 0)}%c")
   }
 
   switch (stateReg) {
     is (sIdle) {
-      nextState := Mux(io.axi.aw.fire, sWrite, sIdle)
+      nextState := Mux(axi.aw.fire, sWrite, sIdle)
     }
 
     is (sWrite) {
-      nextState := Mux(io.axi.w.fire, sFin, sWrite)
+      nextState := Mux(axi.w.fire, sFin, sWrite)
     }
 
     is (sFin) {
-      nextState := Mux(io.axi.b.fire, sIdle, sFin)
+      nextState := Mux(axi.b.fire, sIdle, sFin)
     }
   }
 }

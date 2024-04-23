@@ -13,9 +13,9 @@ class Peri extends Module {
 
   xbar.io.axi <> axi
 
-  uart.io.axi.aw <> xbar.io.uart.aw
-  uart.io.axi.w  <> xbar.io.uart.w
-  uart.io.axi.b  <> xbar.io.uart.b
+  uart.axi.aw <> xbar.io.uart.aw
+  uart.axi.w  <> xbar.io.uart.w
+  uart.axi.b  <> xbar.io.uart.b
 
   sram.axi <> xbar.io.sram
 }
