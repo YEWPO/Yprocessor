@@ -9,6 +9,8 @@
 !*.scala
 !*.drawio
 !*.sv
+!*.png
+!README.md
 
 /.bloop
 /.metals
