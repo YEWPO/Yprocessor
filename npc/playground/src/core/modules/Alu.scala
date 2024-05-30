@@ -7,6 +7,7 @@ import core.modules.AluOp._
 import chisel3.util.log2Up
 import chisel3.util.MuxCase
 import chisel3.util.MuxLookup
+import chisel3.util.Cat
 
 object AluOp {
   val aluOpLen = 6
@@ -65,7 +66,7 @@ class Alu extends Module {
   val pMulu   = io.src1             *     io.src2
   val pDiv    = io.src1.asSInt      /     io.src2.asSInt
   val pDivu   = io.src1             /     io.src2
-  val pRem    = io.src1.asSInt      %     io.src2.asSInt
+  val pRem    = Cat(io.src1(XLEN - 1), io.src1).asSInt % Cat(io.src2(XLEN - 1), io.src2).asSInt
   val pRemu   = io.src1             %     io.src2
 
   val add     = io.src1             +     io.src2
