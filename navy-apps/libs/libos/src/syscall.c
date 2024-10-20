@@ -61,18 +61,18 @@ void _exit(int status) {
 }
 
 int _open(const char *path, int flags, mode_t mode) {
-  return _syscall_(SYS_open, path, flags, mode);
+  return _syscall_(SYS_open, (intptr_t)path, flags, mode);
 }
 
 int _write(int fd, void *buf, size_t count) {
-  return _syscall_(SYS_write, fd, buf, count);
+  return _syscall_(SYS_write, fd, (intptr_t)buf, count);
 }
 
 void *_sbrk(intptr_t increment) {
   extern char end;
-  static uint64_t pbrk = &end;
+  static uint64_t pbrk = (uint64_t)&end;
   uint64_t npbrk = pbrk + increment;
-  if (_syscall_(SYS_brk, npbrk, 0, 0) == 0) {
+  if (_syscall_(SYS_brk, (intptr_t)npbrk, 0, 0) == 0) {
     uint64_t ret = pbrk;
     pbrk = npbrk;
     return (void *)ret;
@@ -81,7 +81,7 @@ void *_sbrk(intptr_t increment) {
 }
 
 int _read(int fd, void *buf, size_t count) {
-  return _syscall_(SYS_read, fd, buf, count);
+  return _syscall_(SYS_read, fd, (intptr_t)buf, count);
 }
 
 int _close(int fd) {
@@ -93,11 +93,11 @@ off_t _lseek(int fd, off_t offset, int whence) {
 }
 
 int _gettimeofday(struct timeval *tv, struct timezone *tz) {
-  return _syscall_(SYS_gettimeofday, tv, tz, 0);
+  return _syscall_(SYS_gettimeofday, (intptr_t)tv, (intptr_t)tz, 0);
 }
 
 int _execve(const char *fname, char * const argv[], char *const envp[]) {
-  return _syscall_(SYS_execve, fname, argv, envp);
+  return _syscall_(SYS_execve, (intptr_t)fname, (intptr_t)argv, (intptr_t)envp);
 }
 
 // Syscalls below are not used in Nanos-lite.
