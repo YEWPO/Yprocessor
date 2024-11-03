@@ -6,7 +6,7 @@ CVSRCS = init.cpp \
 
 CVSRCS := $(addprefix $(NSIM_HOME)/src/verilator/, $(CVSRCS))
 
-LIBVTOP = libVTop.a libverilated.a VTop__ALL.a
+LIBVTOP = libTop.a
 LIBVTOP := $(addprefix $(NSIM_HOME)/src/verilator/obj_dir/, $(LIBVTOP))
 
 ifdef CONFIG_WTRACE

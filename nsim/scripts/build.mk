@@ -50,10 +50,13 @@ $(OBJ_DIR)/%.o: %.cc
 app: $(BINARY)
 
 ifdef CONFIG_ISA_npc
+.PHONY: npc
+npc:
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) $(LIBVTOP) $(LIBS)
+
 $(BINARY):: $(OBJS) $(ARCHIVES) $(CVSRCS)
 	@$(MAKE) -C $(NPC_HOME) CVCFLAGS="$(CVCFLAGS)" verilator
 	@echo + LD $@
-	@echo $(LIBVTOP)
 	$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) $(LIBVTOP) $(LIBS)
 else
 $(BINARY):: $(OBJS) $(ARCHIVES)
@@ -62,4 +65,4 @@ $(BINARY):: $(OBJS) $(ARCHIVES)
 endif
 
 clean:
-	-rm -rf $(BUILD_DIR)
+	-rm -rf $(BUILD_DIR) $(NSIM_HOME)/verilator/obj_dir

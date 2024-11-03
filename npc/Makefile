@@ -4,7 +4,9 @@ BUILD_DIR = $(WORK_DIR)/build
 
 string_in_red = "\033[31;1m"$(1)"\033[0m"
 
-build:
+SCALASRC = $(shell find $(WORK_DIR) -name "*.scala")
+
+build: $(SCALASRC)
 	$(call git_commit, "generate verilog")
 	@echo $(call string_in_red, "=> Build Project")
 	@mill -i __.runMain Main --target-dir $(BUILD_DIR)
@@ -37,9 +39,11 @@ verilator: build
 		--trace \
 		-CFLAGS "$(CVCFLAGS)" \
 		-O3 --x-assign fast --x-initial fast --noassert \
+		--lib-create Top \
 		--Mdir $(NSIM_HOME)/src/verilator/obj_dir \
 		`find $(BUILD_DIR)/gen -name "*.sv" | tr '\n' ' '` \
 		`find $(NSIM_HOME)/src/verilator -name "*.cpp" | grep -Ev 'obj_dir' | tr '\n' ' '`
+	@make -C $(NSIM_HOME) npc
 
 .PHONY: build clean reformat test testonly verilator
 
